@@ -5,18 +5,19 @@ import jp.co.teruuu.parser.common.Pair2;
 import jp.co.teruuu.parser.common.ParseResult;
 import jp.co.teruuu.parser.common.Parser;
 import jp.co.teruuu.parser.common.type.Tuple2;
-import jp.co.teruuu.parser.json.type.JNumberResult;
+import jp.co.teruuu.parser.json.type.JNumber;
+import jp.co.teruuu.parser.json.type.JValue;
 
 import java.util.List;
 import java.util.Optional;
 
-public class JNumber implements JParser<JNumberResult> {
+public class JNumberParser implements JParser<JValue> {
     Parser<Optional<String>> sign;
     Parser<Tuple2<Tuple2<String, List<String>>, Optional<Tuple2<String, List<String>>>>> floats;
     Parser<Optional<Tuple2<Tuple2<String, Optional<String>>, List<String>>>> base;
 
 
-    public JNumber() {
+    public JNumberParser() {
         Parser<String> oton = Parser.string("1").or(Parser.string("2")).or(Parser.string("3")).
                 or(Parser.string("4")).or(Parser.string("5")).or(Parser.string("6")).
                 or(Parser.string("7")).or(Parser.string("8")).or(Parser.string("9"));
@@ -28,7 +29,7 @@ public class JNumber implements JParser<JNumberResult> {
     }
 
     @Override
-    public ParseResult<JNumberResult> parse(String input) {
+    public ParseResult<JValue> parse(String input) {
         String next = input;
         ParseResult<Optional<String>> signParse = this.sign.parse(next);
         if(signParse instanceof ParseResult.Success) {
@@ -77,7 +78,7 @@ public class JNumber implements JParser<JNumberResult> {
                         }
                         base = Integer.valueOf(baseStr);
                     }
-                    return new ParseResult.Success<>(new JNumberResult(value, decimal, base), next);
+                    return new ParseResult.Success<>(new JNumber(value, decimal, base), next);
                 } else {
                     return (ParseResult.Failure) baseParse;
                 }

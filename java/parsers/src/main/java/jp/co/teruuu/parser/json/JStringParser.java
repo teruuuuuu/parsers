@@ -5,13 +5,14 @@ import jp.co.teruuu.parser.common.ParseResult;
 import jp.co.teruuu.parser.common.Parser;
 import jp.co.teruuu.parser.common.type.Tuple2;
 import jp.co.teruuu.parser.common.type.Tuple3;
-import jp.co.teruuu.parser.json.type.JStringResult;
+import jp.co.teruuu.parser.json.type.JString;
+import jp.co.teruuu.parser.json.type.JValue;
 
 import java.util.Arrays;
 
-public class JString implements JParser<JStringResult> {
+public class JStringParser implements JParser<JValue> {
     Parser<Tuple3<String, String, String>> parser;
-    public JString() {
+    public JStringParser() {
         this.parser = new Pair3(Parser.string("\""),
                 Parser.stopWithEscape("\"", Arrays.asList(new Tuple2<>("\\\"", "\""))),
                 Parser.string("\""));
@@ -19,10 +20,10 @@ public class JString implements JParser<JStringResult> {
     }
 
     @Override
-    public ParseResult<JStringResult> parse(String input) {
+    public ParseResult<JValue> parse(String input) {
         ParseResult result = this.parser.parse(input);
         if(result instanceof ParseResult.Success) {
-            JStringResult value = new JStringResult(((ParseResult.Success<Tuple3<String, String, String>>) result).value.item2);
+            JString value = new JString(((ParseResult.Success<Tuple3<String, String, String>>) result).value.item2);
             String next = ((ParseResult.Success<Tuple3<String, String, String>>) result).next;
             return new ParseResult.Success<>(value, next);
         }
