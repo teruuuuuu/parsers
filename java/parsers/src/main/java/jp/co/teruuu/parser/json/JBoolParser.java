@@ -16,7 +16,6 @@ public class JBoolParser implements JParser<JValue> {
     String next = input;
     ParseResult result = this.parser.parse(next);
     if(result instanceof ParseResult.Success) {
-
       String value = ((ParseResult.Success<String>) result).value;
       next = ((ParseResult.Success<String>) result).next;
       if(value.equals("true")) {
