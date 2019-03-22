@@ -13,7 +13,7 @@ import java.util.Optional;
 
 public class JNumberParser implements JParser<JValue> {
     Parser<Optional<String>> sign;
-    Parser<Tuple2<Tuple2<String, List<String>>, Optional<Tuple2<String, List<String>>>>> floats;
+    Parser<Tuple2<List<String>, Optional<Tuple2<String, List<String>>>>> floats;
     Parser<Optional<Tuple2<Tuple2<String, Optional<String>>, List<String>>>> base;
 
 
@@ -24,7 +24,7 @@ public class JNumberParser implements JParser<JValue> {
         Parser<String> zton = oton.or(Parser.string("0"));
 
         this.sign = (new Or(Parser.string("+"), Parser.string("-"))).option();
-        this.floats = oton.pair2(zton.many()).pair2(Parser.string(".").pair2(zton.plus()).option());
+        this.floats = new Pair2(zton.plus(), (new Pair2(Parser.string("."), zton.plus())).option());
         this.base = new Pair2(Parser.string("E").or(Parser.string("e")).pair2(sign), zton.plus()).option();
     }
 
@@ -36,10 +36,10 @@ public class JNumberParser implements JParser<JValue> {
             Optional<String> signValue = ((ParseResult.Success<Optional<String>>) signParse).value;
             next = ((ParseResult.Success) signParse).next;
 
-            ParseResult<Tuple2<Tuple2<String, List<String>>, Optional<Tuple2<String, List<String>>>>> floatParse = this.floats.parse(next);
+            ParseResult<Tuple2<List<String>, Optional<Tuple2<String, List<String>>>>> floatParse = this.floats.parse(next);
             if(floatParse instanceof ParseResult.Success) {
-                Tuple2<Tuple2<String, List<String>>, Optional<Tuple2<String, List<String>>>> floatValue = ((ParseResult.Success<Tuple2<Tuple2<String, List<String>>, Optional<Tuple2<String, List<String>>>>>) floatParse).value;
-                next = ((ParseResult.Success<Tuple2<Tuple2<String, List<String>>, Optional<Tuple2<String, List<String>>>>>) floatParse).next;
+                Tuple2<List<String>, Optional<Tuple2<String, List<String>>>> floatValue = ((ParseResult.Success<Tuple2<List<String>, Optional<Tuple2<String, List<String>>>>>) floatParse).value;
+                next = ((ParseResult.Success<Tuple2<List<String>, Optional<Tuple2<String, List<String>>>>>) floatParse).next;
 
                 ParseResult baseParse = this.base.parse(next);
                 if(baseParse instanceof ParseResult.Success) {
@@ -55,8 +55,7 @@ public class JNumberParser implements JParser<JValue> {
                     if(signValue.isPresent() && signValue.get().equals("-")) {
                         valueStr = "-";
                     }
-                    valueStr += floatValue.item1.item1;
-                    for(String s: floatValue.item1.item2) {
+                    for(String s: floatValue.item1) {
                         valueStr += s;
                     }
                     value = Integer.valueOf(valueStr);

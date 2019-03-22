@@ -38,6 +38,7 @@ public class JArrayParser implements JParser<JValue> {
                 if(rightResult instanceof ParseResult.Success) {
                     Optional<Tuple2<Tuple2<JValue, List<String>>, List<Tuple2<String, Tuple3<List<String>, JValue, List<String>>>>>> resultValue =
                             ((ParseResult.Success<Optional<Tuple2<Tuple2<JValue, List<String>>, List<Tuple2<String, Tuple3<List<String>, JValue, List<String>>>>>>>) result).value;
+                    next = ((ParseResult.Success) rightResult).next;
                     JArray ret = new JArray();
                     if(resultValue.isPresent()) {
                         ret.add(resultValue.get().item1.item1);
