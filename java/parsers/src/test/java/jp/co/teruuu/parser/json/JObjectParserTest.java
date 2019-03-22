@@ -16,5 +16,8 @@ public class JObjectParserTest {
 
     ParseResult result3 = parser.parse("{\"a\": 1, \"c\": []}");
     assert(result3 instanceof ParseResult.Success);
+
+    ParseResult result4 = parser.parse("{\"a\": 1, \"c\": [{\"d\": 345}]}");
+    assert(result4 instanceof ParseResult.Success);
   }
 }

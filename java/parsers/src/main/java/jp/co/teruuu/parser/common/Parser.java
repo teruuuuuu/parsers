@@ -2,6 +2,8 @@ package jp.co.teruuu.parser.common;
 
 import jp.co.teruuu.parser.common.type.Tuple2;
 import jp.co.teruuu.parser.common.type.Tuple3;
+import jp.co.teruuu.parser.json.JsonParser;
+import jp.co.teruuu.parser.json.type.JValue;
 
 import java.util.List;
 import java.util.Optional;

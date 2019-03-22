@@ -2,7 +2,7 @@ package jp.co.teruuu.parser.json.type;
 
 import java.util.Map;
 
-public class JObject {
+public class JObject implements JValue{
   Map<JString, JValue> map;
 
   public JObject(Map<JString, JValue> map) {

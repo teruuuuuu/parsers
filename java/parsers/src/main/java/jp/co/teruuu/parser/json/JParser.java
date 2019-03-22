@@ -30,4 +30,7 @@ public interface JParser<T> extends Parser<T> {
   static JParser<JValue> value() {
     return JParser.bool().or(JParser.nu()).or(JParser.number()).or(JParser.string()).or(JParser.array()).or(JParser.object());
   }
+  static JParser<JValue> json() {
+    return new JsonParser();
+  }
 }
