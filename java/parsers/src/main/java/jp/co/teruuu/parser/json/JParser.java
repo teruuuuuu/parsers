@@ -21,10 +21,13 @@ public interface JParser<T> extends Parser<T> {
     return new JStringParser();
   }
 
+  static JParser<JValue> object() {
+    return new JObjectParser();
+  }
   static JParser<JValue> array() {
     return new JArrayParser();
   }
   static JParser<JValue> value() {
-    return JParser.bool().or(JParser.nu()).or(JParser.number()).or(JParser.string()).or(JParser.array());
+    return JParser.bool().or(JParser.nu()).or(JParser.number()).or(JParser.string()).or(JParser.array()).or(JParser.object());
   }
 }

@@ -16,8 +16,8 @@ import java.util.Optional;
 
 public class JArrayParser implements JParser<JValue> {
     Parser<List<String>> sp = Parser.string(" ").many();
-    Parser<Tuple3<List<String>, String, List<String>>> left = new Pair3(sp, Parser.string("["), sp);;
-    Parser<Tuple3<List<String>, String, List<String>>> right = new Pair3(sp, Parser.string("]"), sp);;
+    Parser<Tuple3<List<String>, String, List<String>>> left = new Pair3(sp, Parser.string("["), sp);
+    Parser<Tuple3<List<String>, String, List<String>>> right = new Pair3(sp, Parser.string("]"), sp);
 
     public JArrayParser() {
     }
