@@ -3,7 +3,7 @@ package jp.co.teruuu.parser.json
 import jp.co.teruuu.parser.common._
 import jp.co.teruuu.parser.json.`type`.JString
 
-class JStringParser extends JParser[JString] {
+object JStringParser extends JParser[JString] {
 
   override def parse(input: String): ParseResult[JString] = {
     val parser = new Pair3(Parser.string("\""), Parser.stop("\"", Map("\\\"" -> "\"")), Parser.string("\""))

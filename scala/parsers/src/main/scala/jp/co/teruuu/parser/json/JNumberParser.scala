@@ -3,7 +3,7 @@ package jp.co.teruuu.parser.json
 import jp.co.teruuu.parser.common._
 import jp.co.teruuu.parser.json.`type`.{JNumber, JString}
 
-class JNumberParser extends JParser[JNumber] {
+object JNumberParser extends JParser[JNumber] {
   val signP = Parser.string("+").or(Parser.string("-")).option()
   val baseP = Parser.string("E").or(Parser.string("e"))
   val ztonP = Parser.string("0").or(Parser.string("1")).or(Parser.string("2")).or(Parser.string("3")).
