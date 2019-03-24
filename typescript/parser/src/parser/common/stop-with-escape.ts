@@ -5,11 +5,12 @@ export class StopWithEscape implements Parser<string> {
 	stop: string;
 	escapes: Map<string, string>;
 	constructor(stop: string, escapes: Map<string, string>) {
+		// super()
 		this.stop = stop;
 		this.escapes = escapes;
 	}
 
-	parse(input: string): ParseResult<String> {
+	parse(input: string): ParseSuccess<string> | ParseFailer<string> {
 		let next = input
 		let result = ""
 		let continueFlg = true

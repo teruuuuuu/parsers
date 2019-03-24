@@ -11,14 +11,14 @@ export class Pair3Parser<T,U,V> implements Parser<[T,U,V]> {
 		this.rp = rp;
 	}
 
-	parse(input: string): ParseResult<[T, U, V]> {
+	parse(input: string): ParseSuccess<[T,U,V]> | ParseFailer<[T,U,V]> {
 		const lResult = this.lp.parse(input)
 		if(lResult instanceof ParseSuccess) {
 			const cResult = this.cp.parse(lResult.next)
 			if(cResult instanceof ParseSuccess) {
 				const rResult = this.rp.parse(cResult.next)
 				if(rResult instanceof ParseSuccess) {
-					return new ParseSuccess([lResult.value, cResult.value, rResult.value], rResult.next)
+					return new ParseSuccess<[T,U,V]>([lResult.value, cResult.value, rResult.value], rResult.next)
 				} else if(rResult instanceof ParseFailer) {
 					return new ParseFailer(rResult.message, rResult.next)
 				}

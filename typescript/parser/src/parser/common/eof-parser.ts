@@ -2,10 +2,7 @@ import { Parser } from './parser';
 import { ParseResult, ParseSuccess, ParseFailer } from './parser-result';
 
 export class EofParser implements Parser<string> {
-	public constructor() {
-	}
-
-	parse(input: string): ParseResult<string> {
+	parse(input: string): ParseSuccess<string> | ParseFailer<string> {
 		if(input == "") {
 			return new ParseSuccess("", "")
 		} else {
@@ -13,3 +10,5 @@ export class EofParser implements Parser<string> {
 		}
 	}
 }
+
+

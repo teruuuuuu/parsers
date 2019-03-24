@@ -3,20 +3,20 @@ import { ParseResult, ParseSuccess, ParseFailer } from './parser-result';
 
 export class ManyParser<T> implements Parser<T[]> {
 	parser: Parser<T>;
-	public constructor(parser: Parser<T>) {
+	constructor(parser: Parser<T>) {
 		this.parser = parser;
 	}
 
-	parse(input: string): ParseResult<T[]> {
+	parse(input: string): ParseSuccess<T[]> | ParseFailer<T[]> {
 		let continueFlg = true
 		let next = input
 		let result = new Array<T>()
-		while(continueFlg) {
+		while (continueFlg) {
 			const parseResult = this.parser.parse(next)
-			if(parseResult instanceof ParseSuccess) {
+			if (parseResult instanceof ParseSuccess) {
 				result.push(parseResult.value)
 				next = parseResult.next
-			} else if(parseResult instanceof ParseFailer) {
+			} else if (parseResult instanceof ParseFailer) {
 				continueFlg = false
 			}
 		}

@@ -27,4 +27,3 @@ export class ParseFailer<T> implements ParseResult<T> {
         return "Failer(" + this.message + ", " + this.next + ")";
     }
 }
-

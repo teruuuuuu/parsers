@@ -1,15 +1,18 @@
-import * as P from './common/parser'
-import { ParseSuccess, ParseFailer } from './common/parser-result'
-import { StringParser } from './common/string-parser'
+import { ParseFailer, ParseSuccess } from './common/parser-result';
+import * as P  from './common/parser';
+import { JString } from './json/type/jstrng'
+import { jStringParser } from './json/jstring-parser'
 
-function test(title:string, f:() => boolean) {
-	console.info(title + ": start")
-	if(f()){
-		console.info(title + ": OK")
+
+function test(title: string, f: () => boolean) {
+	console.log("%c" + title + ": start", "color: green");
+	if (f()) {
+		console.log("%c " + title + ": OK", "color: green");
 	} else {
-		console.info(title + ": NG")
+		console.error(" " + title + ": NG")
 	}
 }
+console.time('all');
 
 function stringParserTest(): boolean {
 	const parser = P.string("Hello");
@@ -104,3 +107,38 @@ function eofParserTest(): boolean {
 	return true
 }
 test("EofParserSpec", eofParserTest)
+
+function orParserTest(): boolean {
+	const parser = P.or(P.string("Hello"), P.string("World"))
+	const result1 = parser.parse("Hello");
+	if (!(result1 instanceof ParseSuccess)) { return false; }
+	if (!(result1.value == "Hello")) { return false; }
+	return true
+}
+test("OrParserSpec", orParserTest)
+
+
+function jStringParserTest(): boolean {
+	const parser = jStringParser
+	const result1 = parser.parse("\"Hello\"");
+	if (!(result1 instanceof ParseSuccess)) { return false; }
+	if (!(result1.value.equals(new JString("Hello")))) { return false; }
+
+	const result2 = parser.parse("\"Hello\", World\"");
+	if (!(result2 instanceof ParseSuccess)) { return false; }
+	if (!(result2.value.equals(new JString("Hello")))) { return false; }
+
+	const result3 = parser.parse("Hello\", World");
+	if (!(result3 instanceof ParseFailer)) { return false; }
+
+	const result4 = parser.parse("\"Hello\\\", World\"");
+	if (!(result4 instanceof ParseSuccess)) { return false; }
+	if (!(result4.value.equals(new JString("Hello\", World")))) { return false; }
+	return true
+}
+test("JStringParserSpec", jStringParserTest)
+
+
+
+
+console.timeEnd('all');
