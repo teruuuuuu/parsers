@@ -5,12 +5,11 @@ export class OrParser<T> implements Parser<T> {
 	parser1: Parser<T>;
 	parser2: Parser<T>;
 	public constructor(parser1: Parser<T>, parser2: Parser<T>) {
-		// super()
 		this.parser1 = parser1;
 		this.parser2 = parser2;
 	}
 
-	parse(input: string): ParseSuccess<T> | ParseFailer<T> {
+	parse(input: string): ParseResult<T> {
 		const result1 = this.parser1.parse(input)
 		if(result1 instanceof ParseSuccess) {
 			return new ParseSuccess(result1.value, result1.next)

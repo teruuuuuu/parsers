@@ -7,9 +7,11 @@ import { StringParser } from './string-parser';
 import { StopWithEscape } from './stop-with-escape';
 import { EofParser } from './eof-parser';
 import { OrParser } from './or-parser';
+import { OptionParser } from './option-parser';
+import { Option } from './type/option';
 
 export interface Parser<T> {
-	parse(input: string ): ParseSuccess<T> | ParseFailer<T>;
+	parse(input: string ): ParseResult<T>;
 }
 
 
@@ -33,6 +35,9 @@ export function plus<T>(parser: Parser<T>): Parser<T[]> {
 }
 export function or<T>(parser1: Parser<T>, parser2: Parser<T>): Parser<T> {
 	return new OrParser(parser1, parser2)
+}
+export function option<T>(parser: Parser<T>): Parser<Option<T>> {
+	return new OptionParser(parser)
 }
 export function eof(): Parser<string> {
 	return new EofParser()

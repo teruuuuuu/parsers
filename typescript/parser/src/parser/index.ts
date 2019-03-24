@@ -1,7 +1,8 @@
-import { ParseFailer, ParseSuccess } from './common/parser-result';
+import { ParseFailer, ParseSuccess, ParseResult } from './common/parser-result';
 import * as P  from './common/parser';
 import { JString } from './json/type/jstrng'
 import { jStringParser } from './json/jstring-parser'
+import { Option, Some, None } from './common/type/option';
 
 
 function test(title: string, f: () => boolean) {
@@ -116,6 +117,22 @@ function orParserTest(): boolean {
 	return true
 }
 test("OrParserSpec", orParserTest)
+
+function optionParserTest(): boolean {
+	const parser = P.option(P.string("Hello"))
+
+	const result1: ParseResult<Option<string>> = parser.parse("Hello");
+	if (!(result1 instanceof ParseSuccess)) { return false; }
+	if (!(result1.value instanceof Some)) { return false; }
+	if (!(result1.value.value == "Hello")) { return false; }
+
+	const result2: ParseResult<Option<string>> = parser.parse("hello");
+	if (!(result2 instanceof ParseSuccess)) { return false; }
+	if (!(result2.value instanceof None)) { return false; }
+
+	return true
+}
+test("OptionParserSpec", optionParserTest)
 
 
 function jStringParserTest(): boolean {

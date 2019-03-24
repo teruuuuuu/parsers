@@ -11,7 +11,7 @@ export class Pair3Parser<T,U,V> implements Parser<[T,U,V]> {
 		this.rp = rp;
 	}
 
-	parse(input: string): ParseSuccess<[T,U,V]> | ParseFailer<[T,U,V]> {
+	parse(input: string): ParseResult<[T,U,V]> {
 		const lResult = this.lp.parse(input)
 		if(lResult instanceof ParseSuccess) {
 			const cResult = this.cp.parse(lResult.next)

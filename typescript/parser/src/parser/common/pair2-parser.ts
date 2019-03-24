@@ -5,12 +5,11 @@ export class Pair2Parser<T,U> implements Parser<[T, U]> {
 	lp: Parser<T>;
 	rp: Parser<U>;
 	constructor(lp: Parser<T>, rp: Parser<U>) {
-		// super()
 		this.lp = lp;
 		this.rp = rp;
 	}
 
-	parse(input: string): ParseSuccess<[T, U]> | ParseFailer<[T, U]> {
+	parse(input: string): ParseResult<[T, U]> {
 		const lResult = this.lp.parse(input)
 		if(lResult instanceof ParseSuccess) {
 			const rResult = this.rp.parse(lResult.next)

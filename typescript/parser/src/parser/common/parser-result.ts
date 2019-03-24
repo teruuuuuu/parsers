@@ -1,6 +1,6 @@
-export interface ParseResult<T> {}
+export interface ParseResultI<T> {}
 
-export class ParseSuccess<T> implements ParseResult<T> {
+export class ParseSuccess<T> implements ParseResultI<T> {
     value: T;
     next: string;
 
@@ -14,7 +14,7 @@ export class ParseSuccess<T> implements ParseResult<T> {
     }
 }
 
-export class ParseFailer<T> implements ParseResult<T> {
+export class ParseFailer<T> implements ParseResultI<T> {
     message: string;
     next: string;
 
@@ -27,3 +27,6 @@ export class ParseFailer<T> implements ParseResult<T> {
         return "Failer(" + this.message + ", " + this.next + ")";
     }
 }
+
+
+export type ParseResult<T> = ParseSuccess<T> | ParseFailer<T>

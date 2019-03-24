@@ -4,11 +4,10 @@ import { ParseResult, ParseSuccess, ParseFailer } from './parser-result';
 export class StringParser implements Parser<string> {
 	literal: string;
 	constructor(literal: string) {
-		// super()
 		this.literal = literal;
 	}
 
-	parse(input: string): ParseSuccess<string> | ParseFailer<string> {
+	parse(input: string): ParseResult<string> {
 		if (input.startsWith(this.literal)) {
 			return new ParseSuccess(this.literal, input.substring(this.literal.length))
 		}

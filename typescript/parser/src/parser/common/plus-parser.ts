@@ -4,11 +4,10 @@ import { ParseResult, ParseSuccess, ParseFailer } from './parser-result';
 export class PlusParser<T> implements Parser<T[]> {
 	parser: Parser<T>;
 	constructor(parser: Parser<T>) {
-		// super()
 		this.parser = parser;
 	}
 
-	parse(input: string): ParseSuccess<T[]> | ParseFailer<T[]> {
+	parse(input: string): ParseResult<T[]> {
 		let continueFlg = true
 		let next = input
 		let result = new Array<T>()

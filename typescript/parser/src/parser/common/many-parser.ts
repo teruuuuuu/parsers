@@ -7,7 +7,7 @@ export class ManyParser<T> implements Parser<T[]> {
 		this.parser = parser;
 	}
 
-	parse(input: string): ParseSuccess<T[]> | ParseFailer<T[]> {
+	parse(input: string): ParseResult<T[]> {
 		let continueFlg = true
 		let next = input
 		let result = new Array<T>()
