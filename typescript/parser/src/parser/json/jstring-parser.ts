@@ -6,7 +6,7 @@ import * as P from '../common/parser'
 class JStringParser implements JParser<JString> {
 	parser = P.pair3(P.string("\""), P.stopWithEscape("\"", new Map([["\\\"", "\""]])), P.string("\""))
 
-	parse(input: string): ParseSuccess<JString> | ParseFailer<JString> {
+	parse(input: string): ParseResult<JString> {
 		const result = this.parser.parse(input)
 		if (result instanceof ParseSuccess) {
 			return new ParseSuccess(new JString(result.value[1]), result.next)

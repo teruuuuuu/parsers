@@ -3,6 +3,13 @@ import * as P  from './common/parser';
 import { JString } from './json/type/jstrng'
 import { jStringParser } from './json/jstring-parser'
 import { Option, Some, None } from './common/type/option';
+import { jArrayParser } from './json/jarray-parser';
+import { jNumberParser } from './json/jnumber-parser';
+import { JNumber } from './json/type/jnumber';
+import { jBoolParser } from './json/jbool-parser';
+import { JBool } from './json/type/jbool';
+import { jNullParser } from './json/jnull-parser';
+import { JNull } from './json/type/jnull';
 
 
 function test(title: string, f: () => boolean) {
@@ -155,7 +162,44 @@ function jStringParserTest(): boolean {
 }
 test("JStringParserSpec", jStringParserTest)
 
+function jNumberParserTest(): boolean {
+	const parser = jNumberParser
+	const result1 = parser.parse("+123.456E-123");
+	if (!(result1 instanceof ParseSuccess)) { return false; }
+	if (!(result1.value.equals(new JNumber(Number("+123.456E-123"))))) { return false; }
 
+	return true
+}
+test("JNumberParserSpec", jNumberParserTest)
+
+function jBoolParserTest(): boolean {
+	const parser = jBoolParser
+	const result1 = parser.parse("true");
+	if (!(result1 instanceof ParseSuccess)) { return false; }
+	if (!(result1.value.equals(new JBool(true)))) { return false; }
+
+	const result2 = parser.parse("false");
+	if (!(result2 instanceof ParseSuccess)) { return false; }
+	if (!(result2.value.equals(new JBool(false)))) { return false; }
+
+	const result3 = parser.parse("fals");
+	if (!(result3 instanceof ParseFailer)) { return false; }
+	return true
+}
+test("JBoolParserSpec", jBoolParserTest)
+
+function jNullParserTest(): boolean {
+	const parser = jNullParser
+	const result1 = parser.parse("null");
+	if (!(result1 instanceof ParseSuccess)) { return false; }
+	if (!(result1.value.equals(new JNull()))) { return false; }
+
+	const result2 = parser.parse("nul");
+	if (!(result2 instanceof ParseFailer)) { return false; }
+
+	return true
+}
+test("JNullParserSpec", jNullParserTest)
 
 
 console.timeEnd('all');
