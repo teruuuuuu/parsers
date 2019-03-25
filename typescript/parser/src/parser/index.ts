@@ -10,6 +10,9 @@ import { jBoolParser } from './json/jbool-parser';
 import { JBool } from './json/type/jbool';
 import { jNullParser } from './json/jnull-parser';
 import { JNull } from './json/type/jnull';
+import { jobjectParse } from './json/jobject-parser';
+import { JObject } from './json/type/jobject';
+import { JArray } from './json/type/jarray';
 
 
 function test(title: string, f: () => boolean) {
@@ -201,5 +204,24 @@ function jNullParserTest(): boolean {
 }
 test("JNullParserSpec", jNullParserTest)
 
+// function jArrayParserTest(): boolean {
+// 	const parser = jArrayParser
+// 	const result1 = parser.parse("[ 1 , \"2\" , [ true, null, [] ]] ");
+// 	if (!(result1 instanceof ParseSuccess)) { return false; }
+
+// 	return true
+// }
+// test("JArrayParserSpec", jArrayParserTest)
+
+function jObjectParserTest(): boolean {
+	const parser = jobjectParse
+	const result1 = parser.parse("{\"a\": 1, \"c\": [{\"d\": 345}]}");
+	if (!(result1 instanceof ParseSuccess)) { return false; }
+	const result = new JObject(new Map([[new JString("a"), new JNumber(1)], [new JString("c"), new JArray(new Array(new JObject(new Map([[new JString("d"), new JNumber(345)]]))))]]))
+
+
+	return true
+}
+test("JobjectParserSpec", jObjectParserTest)
 
 console.timeEnd('all');

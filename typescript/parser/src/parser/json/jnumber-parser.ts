@@ -6,7 +6,7 @@ import { JNumber } from './type/jnumber'
 import { Some, None } from '../common/type/option'
 import { Option } from '../common/type/option';
 
-class JNumberParser implements JParser<JNumber> {
+export class JNumberParser implements JParser<JNumber> {
 	signP: Parser<Option<string>> = P.option(P.or(P.string("+"), P.string("-")))
 	baseP = P.or(P.string("E"), P.string("e"))
 	numberP: Parser<string> = P.or(P.or(P.or(P.or(P.or(P.or(P.or(P.or(P.or(P.string("1"), P.string("2")), P.string("3")), P.string("4")),

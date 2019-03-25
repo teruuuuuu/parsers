@@ -3,7 +3,7 @@ import { JParser } from './jparser'
 import { ParseResult, ParseSuccess, ParseFailer } from '../common/parser-result'
 import * as P from '../common/parser'
 
-class JStringParser implements JParser<JString> {
+export class JStringParser implements JParser<JString> {
 	parser = P.pair3(P.string("\""), P.stopWithEscape("\"", new Map([["\\\"", "\""]])), P.string("\""))
 
 	parse(input: string): ParseResult<JString> {
