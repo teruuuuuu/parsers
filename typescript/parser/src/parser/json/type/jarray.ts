@@ -12,12 +12,13 @@ export class JArray extends JValue {
 		if(!(other instanceof JArray) && other.value.length != this.value.length) {
 			return false;
 		} else {
+			let result = true;
 			this.value.forEach((v, index) => {
 				if(!v.equals(other.value[index])){
-					return false;
+					result = false;
 				}
-				return true;
 			})
+			return result;
 		}
 
 	}

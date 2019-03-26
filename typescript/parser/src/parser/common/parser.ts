@@ -14,7 +14,6 @@ export interface Parser<T> {
 	parse(input: string ): ParseResult<T>;
 }
 
-
 export function string(literal: string): Parser<string> {
 	return new StringParser(literal);
 }

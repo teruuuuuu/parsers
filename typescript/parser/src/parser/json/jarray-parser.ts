@@ -51,4 +51,3 @@ export class JArrayParser implements JParser<JArray> {
 		return new ParseSuccess(new JArray(values), next)
 	}
 }
-export const jArrayParser = new JArrayParser()

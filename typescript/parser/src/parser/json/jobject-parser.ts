@@ -54,5 +54,3 @@ export class JObjectParser implements JParser<JObject> {
 		return new ParseSuccess(new JObject(values), next)
 	}
 }
-
-export const jobjectParse = new JObjectParser()

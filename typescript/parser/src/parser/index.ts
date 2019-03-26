@@ -3,16 +3,18 @@ import * as P  from './common/parser';
 import { JString } from './json/type/jstrng'
 import { jStringParser } from './json/jstring-parser'
 import { Option, Some, None } from './common/type/option';
-import { jArrayParser } from './json/jarray-parser';
+import { JArrayParser } from './json/jarray-parser';
 import { jNumberParser } from './json/jnumber-parser';
 import { JNumber } from './json/type/jnumber';
 import { jBoolParser } from './json/jbool-parser';
 import { JBool } from './json/type/jbool';
 import { jNullParser } from './json/jnull-parser';
 import { JNull } from './json/type/jnull';
-import { jobjectParse } from './json/jobject-parser';
+import { JObjectParser } from './json/jobject-parser';
 import { JObject } from './json/type/jobject';
 import { JArray } from './json/type/jarray';
+import { JValue } from './json/type/jvalue';
+import { JsonParser } from './json/json-parser';
 
 
 function test(title: string, f: () => boolean) {
@@ -204,24 +206,42 @@ function jNullParserTest(): boolean {
 }
 test("JNullParserSpec", jNullParserTest)
 
-// function jArrayParserTest(): boolean {
-// 	const parser = jArrayParser
-// 	const result1 = parser.parse("[ 1 , \"2\" , [ true, null, [] ]] ");
-// 	if (!(result1 instanceof ParseSuccess)) { return false; }
-
-// 	return true
-// }
-// test("JArrayParserSpec", jArrayParserTest)
-
-function jObjectParserTest(): boolean {
-	const parser = jobjectParse
-	const result1 = parser.parse("{\"a\": 1, \"c\": [{\"d\": 345}]}");
+function jArrayParserTest(): boolean {
+	const parser = new JArrayParser()
+	const result1 = parser.parse("[ 1 , \"2\" , [ true, null, [] ]] ");
 	if (!(result1 instanceof ParseSuccess)) { return false; }
-	const result = new JObject(new Map([[new JString("a"), new JNumber(1)], [new JString("c"), new JArray(new Array(new JObject(new Map([[new JString("d"), new JNumber(345)]]))))]]))
-
 
 	return true
 }
+test("JArrayParserSpec", jArrayParserTest)
+
+function jObjectParserTest(): boolean {
+	const parser = new JObjectParser()
+	const result1 = parser.parse("{\"a\": 1, \"c\": [{\"d\": 345}]}");
+	if (!(result1 instanceof ParseSuccess)) { return false; }
+
+	const value1:[JString, JValue] = [new JString("a"), new JNumber(1)]
+	const value2:[JString, JValue] = [new JString("c"), new JArray(new Array(new JObject(new Map([[new JString("d"), new JNumber(345)]]))))];
+	const ans1 = new JObject(new Map([value1, value2]))
+	if (!(result1.value.equals(ans1))) { return false; }
+	return true
+}
 test("JobjectParserSpec", jObjectParserTest)
+
+function jsonParserTest(): boolean {
+	const parser = new JsonParser()
+	const result1 = parser.parse(" {\"a\": [ [1, 2, 3,4], {} ]} ");
+	if (!(result1 instanceof ParseSuccess)) { return false; }
+	const v1: JValue = new JObject(new Map())
+	const v2: JValue = new JArray(new Array(new JNumber(1), new JNumber(2), new JNumber(3), new JNumber(4)))
+	const ans1 = new JObject(new Map([[new JString("a"), new JArray(new Array(v2, v1))]]))
+	if (!(result1.value.equals(ans1))) { return false; }
+
+	const result2 = parser.parse("  {\"a\": [ [1, 2, 3,4], {} ]}, {}");
+	if (!(result2 instanceof ParseFailer)) { return false; }
+	return true
+}
+test("JsonParserSpec", jsonParserTest)
+
 
 console.timeEnd('all');
