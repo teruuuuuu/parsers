@@ -1,16 +1,15 @@
-package main
+package parser
 
 import (
 	"fmt"
+	"parser/common"
 	"testing"
-
-	"./common"
 )
 
 func Test(t *testing.T) {
-	var p = common.StringParser{}
-	var b = p.parse()
-	fmt.Println(p.parse())
+
+	var a = common.StringParser{}
+	fmt.Println(a)
 
 	var result int
 
