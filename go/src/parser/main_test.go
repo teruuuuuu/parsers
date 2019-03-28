@@ -3,10 +3,13 @@ package parser
 import (
 	"fmt"
 	"parser/common"
+	"parser/json"
 	"testing"
 )
 
 func Test(t *testing.T) {
+	var p = json.StringParser{}
+	fmt.Println(p.Parse("aa"))
 
 	var a = common.StringParser{}
 	fmt.Println(a)
