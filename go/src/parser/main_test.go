@@ -1,18 +1,71 @@
 package parser
 
 import (
-	"fmt"
-	"parser/common"
 	"parser/json"
 	"testing"
 )
 
-func Test(t *testing.T) {
-	var p = json.StringParser{}
-	fmt.Println(p.Parse("aa"))
+func TestJNull(t *testing.T) {
+	var parser = json.JNullParser{}
+	var result1 = parser.Parse([]byte("   null  "))
+	result1.Show()
+	if !result1.Result {
+		t.Errorf("parse failed")
+	}
+}
 
-	var a = common.StringParser{}
-	fmt.Println(a)
+func TestJBool(t *testing.T) {
+	var parser = json.JBoolParser{}
+	var result1 = parser.Parse([]byte("   true  "))
+	result1.Show()
+	if !result1.Result {
+		t.Errorf("parse failed")
+	}
+
+	var result2 = parser.Parse([]byte("   false"))
+	result2.Show()
+	if !result2.Result {
+		t.Errorf("parse failed")
+	}
+
+	var result3 = parser.Parse([]byte("   True"))
+	result3.Show()
+	if result3.Result {
+		t.Errorf("parse failed")
+	}
+}
+
+func TestJString(t *testing.T) {
+	var parser = json.JStringParser{}
+	var result1 = parser.Parse([]byte("   \"Hello\", World\"  "))
+	result1.Show()
+	if !result1.Result {
+		t.Errorf("parse failed")
+	}
+
+	var result2 = parser.Parse([]byte("   \"Hello, World  "))
+	result2.Show()
+	if result2.Result {
+		t.Errorf("parse failed")
+	}
+
+	var result3 = parser.Parse([]byte("   \"Hello\\\", World\"  "))
+	result3.Show()
+	if !result3.Result {
+		t.Errorf("parse failed")
+	}
+}
+
+func TestJNumber(t *testing.T) {
+	var parser = json.JNumberParser{}
+	var result1 = parser.Parse([]byte("   +123.456E-789  "))
+	result1.Show()
+	if !result1.Result {
+		t.Errorf("parse failed")
+	}
+}
+
+func Test(t *testing.T) {
 
 	var result int
 
