@@ -1,8 +1,10 @@
 package parser
 
 import (
+	"fmt"
 	"parser/json"
 	"testing"
+	"unsafe"
 )
 
 func TestJNull(t *testing.T) {
@@ -38,6 +40,7 @@ func TestJBool(t *testing.T) {
 func TestJString(t *testing.T) {
 	var parser = json.JStringParser{}
 	var result1 = parser.Parse([]byte("   \"Hello\", World\"  "))
+	fmt.Println(*(*string)(unsafe.Pointer(&result1.Next)))
 	result1.Show()
 	if !result1.Result {
 		t.Errorf("parse failed")
@@ -65,19 +68,95 @@ func TestJNumber(t *testing.T) {
 	}
 }
 
-func Test(t *testing.T) {
-
-	var result int
-
-	// テストケースの検証.
-	// テストしたい関数の実行結果を if などで判定して想定した値であるかを検証する.
-	result = 3
-	if result != 3 {
-		// テスト失敗時には t.Error などでエラーを表示する.
-		t.Errorf("add failed. expect:%d, actual:%d", 3, result)
+func TestJArray(t *testing.T) {
+	var parser = json.JArrayParser{}
+	var result1 = parser.Parse([]byte(" [   ]  "))
+	result1.Show()
+	if !result1.Result {
+		t.Errorf("parse failed")
 	}
 
-	// テスト中のロギング.
-	// t.Log, t.Logf でログを出すと `go test -v` と実行したときのみ表示される.
-	t.Logf("result is %d", result)
+	var result2 = parser.Parse([]byte(" [  \"abc\" ]  "))
+	result2.Show()
+	if !result2.Result {
+		t.Errorf("parse failed")
+	}
+
+	var result3 = parser.Parse([]byte(" [  {}, {} ]  "))
+	result3.Show()
+	if !result3.Result {
+		t.Errorf("parse failed")
+	}
+}
+
+func TestJObject(t *testing.T) {
+	var parser = json.JObjectParser{}
+	var result1 = parser.Parse([]byte(" { \"abc\" : 123  }"))
+	result1.Show()
+	if !result1.Result {
+		t.Errorf("parse failed")
+	}
+
+	var result2 = parser.Parse([]byte(" {   }"))
+	result2.Show()
+	if !result2.Result {
+		t.Errorf("parse failed")
+	}
+
+	var result3 = parser.Parse([]byte(" { \"def\": [ ]  }"))
+	result3.Show()
+	if !result3.Result {
+		t.Errorf("parse failed")
+	}
+
+	var result4 = parser.Parse([]byte(" { \"ghi\": [ { }, { \"jkl\": 345 }]  }"))
+	result4.Show()
+	if !result4.Result {
+		t.Errorf("parse failed")
+	}
+	format4 := result4.Value.Format()
+	var view4 = ""
+	for i := range format4 {
+		view4 += format4[i] + "\n"
+	}
+	fmt.Println(view4)
+}
+
+func TestJson(t *testing.T) {
+	var parser = json.JsonParser{}
+	var result1 = parser.Parse([]byte(" { \"abc\" : 123  }"))
+	result1.Show()
+	if !result1.Result {
+		t.Errorf("parse failed")
+	}
+
+	var result2 = parser.Parse([]byte(" {   }"))
+	result2.Show()
+	if !result2.Result {
+		t.Errorf("parse failed")
+	}
+
+	var result3 = parser.Parse([]byte(" { \"def\": [ ]  }"))
+	result3.Show()
+	if !result3.Result {
+		t.Errorf("parse failed")
+	}
+
+	var result4 = parser.Parse([]byte(" { \"ghi\": [ { }, { \"jkl\": 345 }]  }"))
+	result4.Show()
+	if !result4.Result {
+		t.Errorf("parse failed")
+	}
+
+	var result5 = parser.Parse([]byte(" [  \"abc\" ]  "))
+	result5.Show()
+	if !result5.Result {
+		t.Errorf("parse failed")
+	}
+
+	var result6 = parser.Parse([]byte(" [  \"abc\" ], {}"))
+	result6.Show()
+	if result6.Result {
+		t.Errorf("parse failed")
+	}
 }

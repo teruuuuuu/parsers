@@ -31,18 +31,58 @@ type JParser interface {
 	Parse(input []byte) *JParseResult
 }
 
-func (result *JParseResult) Show() {
+func (jv JValue) Format() []string {
+	var ret = []string{}
+	if jv.Vtype == JNull || jv.Vtype == JBool || jv.Vtype == JNumber {
+		ret = append(ret, *(*string)(unsafe.Pointer(&jv.Text)))
+	} else if jv.Vtype == JString {
+		ret = append(ret, "\""+*(*string)(unsafe.Pointer(&jv.Text))+"\"")
+	} else if jv.Vtype == JArray {
+		ret = append(ret, "[")
+		for i := range jv.Nest {
+			nestf := jv.Nest[i].Format()
+			for j := range nestf {
+				var line = "  " + nestf[j]
+				if i != len(jv.Nest)-1 && j == len(nestf)-1 {
+					line = line + ","
+				}
+				ret = append(ret, line)
+			}
+		}
+		ret = append(ret, "]")
+	} else if jv.Vtype == JObject {
+		ret = append(ret, "{")
+		for i := 0; i < len(jv.Nest)/2; i++ {
+			nestf := jv.Nest[2*i+1].Format()
+			for j := range nestf {
+				var line = "  "
+				if j == 0 {
+					line = line + jv.Nest[2*i].Format()[0] + ": "
+				}
+				line = line + nestf[j]
+				if i != len(jv.Nest)/2-1 && j == len(nestf)-1 {
+					line = line + ","
+				}
+				ret = append(ret, line)
+			}
+		}
+		ret = append(ret, "}")
+	}
+	return ret
+}
+
+func (result JParseResult) Show() {
 	if result.Result {
-		fmt.Println("result: OK")
+		fmt.Println("parse: OK")
 		result.Value.Show()
 		fmt.Println("next:" + *(*string)(unsafe.Pointer(&result.Next)))
 	} else {
-		fmt.Println("result: NG")
+		fmt.Println("parse: NG")
 		fmt.Println("message:" + *(*string)(unsafe.Pointer(&result.Message)))
 	}
 }
 
-func (jValue *JValue) Show() {
+func (jValue JValue) Show() {
 	fmt.Print("Value type: ")
 	if jValue.Vtype == JNull {
 		fmt.Println("JNull")
@@ -64,8 +104,11 @@ type JNullParser struct{}
 type JBoolParser struct{}
 type JStringParser struct{}
 type JNumberParser struct{}
+type JArrayParser struct{}
+type JObjectParser struct{}
+type JsonParser struct{}
 
-func (parser *JNullParser) Parse(input []byte) *JParseResult {
+func (parser JNullParser) Parse(input []byte) *JParseResult {
 	var result = JParseResult{}
 	_, next := spSeq(input)
 	var isParseOk, text, nexts = scrap(next, []byte("null"))
@@ -84,7 +127,7 @@ func (parser *JNullParser) Parse(input []byte) *JParseResult {
 	}
 }
 
-func (parser *JBoolParser) Parse(input []byte) *JParseResult {
+func (parser JBoolParser) Parse(input []byte) *JParseResult {
 	var result = JParseResult{}
 	_, next := spSeq(input)
 	var isParseOk, text, nexts = scraps(next, [][]byte{[]byte("true"), []byte("false")})
@@ -102,7 +145,7 @@ func (parser *JBoolParser) Parse(input []byte) *JParseResult {
 	}
 }
 
-func (parser *JStringParser) Parse(input []byte) *JParseResult {
+func (parser JStringParser) Parse(input []byte) *JParseResult {
 	var result = JParseResult{}
 	_, next := spSeq(input)
 	var doubleQoute = []byte("\"")
@@ -125,6 +168,7 @@ func (parser *JStringParser) Parse(input []byte) *JParseResult {
 			}
 		}
 		if startsWith(next, doubleQoute) {
+			next = next[len(doubleQoute):]
 			var jValue = JValue{}
 			jValue.Vtype = JString
 			jValue.Text = ret
@@ -143,7 +187,7 @@ func (parser *JStringParser) Parse(input []byte) *JParseResult {
 	}
 }
 
-func (parser *JNumberParser) Parse(input []byte) *JParseResult {
+func (parser JNumberParser) Parse(input []byte) *JParseResult {
 	var result = JParseResult{}
 	var ret = []byte("")
 
@@ -257,6 +301,173 @@ func (parser *JNumberParser) Parse(input []byte) *JParseResult {
 	value.Text = ret
 	result.Value = &value
 	return &result
+}
+
+func (parser JArrayParser) Parse(input []byte) *JParseResult {
+	var result = JParseResult{}
+	_, next := spSeq(input)
+	var left = []byte("[")
+	var right = []byte("]")
+	var piriod = []byte(",")
+
+	var value = JValue{}
+	value.Vtype = JArray
+	var values = []JValue{}
+	result.Value = &value
+
+	if startsWith(next, left) {
+		next = next[len(left):]
+	} else {
+		result.Result = false
+		return &result
+	}
+
+	var vResult = jValueParser(next)
+	if vResult.Result {
+		next = vResult.Next
+		values = append(values, *vResult.Value)
+		for len(next) > 0 {
+			_, next = spSeq(next)
+			if startsWith(next, piriod) {
+				next = next[len(piriod):]
+				vsValue := jValueParser(next)
+				if vsValue.Result {
+					next = vsValue.Next
+					values = append(values, *vsValue.Value)
+				} else {
+					result.Result = false
+					return &result
+				}
+			} else {
+				break
+			}
+		}
+	}
+	_, next = spSeq(next)
+	if startsWith(next, right) {
+		next = next[len(right):]
+	} else {
+		result.Result = false
+		return &result
+	}
+	_, next = spSeq(next)
+	value.Nest = values
+	result.Next = next
+	result.Result = true
+	return &result
+}
+
+func (parser JObjectParser) Parse(input []byte) *JParseResult {
+	var result = JParseResult{}
+	_, next := spSeq(input)
+	var left = []byte("{")
+	var right = []byte("}")
+	var comma = []byte(",")
+
+	var value = JValue{}
+	value.Vtype = JObject
+	var values = []JValue{}
+
+	if startsWith(next, left) {
+		next = next[len(left):]
+	} else {
+		result.Result = false
+		return &result
+	}
+	_, next = spSeq(next)
+	pResult, k, v, nexts := objectKeyValue(next)
+	if pResult {
+		values = append(values, *k.Value, *v.Value)
+		_, next = spSeq(nexts)
+		for len(next) > 0 {
+			if startsWith(next, comma) {
+				next = next[len(comma):]
+				pResult, k, v, nexts = objectKeyValue(next)
+				if pResult {
+					_, next = spSeq(nexts)
+					values = append(values, *k.Value, *v.Value)
+				} else {
+					result.Result = false
+					return &result
+				}
+			} else {
+				break
+			}
+		}
+	}
+
+	_, next = spSeq(next)
+	if startsWith(next, right) {
+		next = next[len(right):]
+	} else {
+		result.Result = false
+		return &result
+	}
+	_, next = spSeq(next)
+	result.Next = next
+	result.Result = true
+	value.Nest = values
+	result.Value = &value
+	return &result
+}
+
+func (parser JsonParser) Parse(input []byte) *JParseResult {
+	var result = JParseResult{}
+	result.Result = false
+	parsers := []JParser{JObjectParser{}, JArrayParser{}}
+	for i := range parsers {
+		parseResult := parsers[i].Parse(input)
+		if parseResult.Result {
+			_, next := spSeq(parseResult.Next)
+			if len(next) == 0 {
+				result.Result = true
+				result.Next = next
+				result.Value = parseResult.Value
+				break
+			}
+		}
+	}
+	return &result
+}
+
+func jValueParser(input []byte) *JParseResult {
+	var parsers = []JParser{JNullParser{}, JBoolParser{}, JStringParser{}, JNumberParser{}, JArrayParser{}, JObjectParser{}}
+
+	for i := range parsers {
+		var parseResult = parsers[i].Parse(input)
+		if parseResult.Result {
+			return parseResult
+		}
+	}
+	var fail = JParseResult{}
+	fail.Result = false
+	return &fail
+}
+
+func objectKeyValue(input []byte) (bool, *JParseResult, *JParseResult, []byte) {
+	_, next := spSeq(input)
+	var colon = []byte(":")
+	var stringParser = JStringParser{}
+
+	keyResult := stringParser.Parse(next)
+	if keyResult.Result {
+		_, next = spSeq(keyResult.Next)
+		if startsWith(next, colon) {
+			next = next[len(colon):]
+		} else {
+			return false, &JParseResult{}, &JParseResult{}, input
+		}
+		valueResult := jValueParser(next)
+
+		if valueResult.Result {
+			_, next = spSeq(valueResult.Next)
+			return true, keyResult, valueResult, next
+		} else {
+			return false, &JParseResult{}, &JParseResult{}, input
+		}
+	} else {
+		return false, &JParseResult{}, &JParseResult{}, input
+	}
 }
 
 func scraps(input []byte, words [][]byte) (bool, []byte, []byte) {
