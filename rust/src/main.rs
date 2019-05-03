@@ -1,0 +1,6 @@
+extern crate rust_parser;
+use rust_parser::math_parser::main;
+
+fn main() {
+    rust_parser::math_parser::main::main();
+}
