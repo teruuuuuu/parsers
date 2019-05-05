@@ -23,9 +23,10 @@ impl<T> Annot<T> {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TokenKind {
-  Number(u64),
+  Number(i64),
   String(String),
   Bool(bool),
+  Null, // null
   Comma, // ,
   Colon, // :
   LParen, // {
@@ -37,7 +38,7 @@ pub enum TokenKind {
 pub type Token = Annot<TokenKind>;
 
 impl Token {
-  pub fn number(n: u64, loc: Loc) -> Self {
+  pub fn number(n: i64, loc: Loc) -> Self {
     Self::new(TokenKind::Number(n), loc)
   }
   pub fn string(v: String, loc: Loc) -> Self {
@@ -46,13 +47,16 @@ impl Token {
   pub fn bool(b: bool, loc: Loc) -> Self {
     Self::new(TokenKind::Bool(b), loc)
   }
+  pub fn null(loc: Loc) -> Self {
+    Self::new(TokenKind::Null, loc)
+  }
   pub fn comma(loc: Loc) -> Self {
     Self::new(TokenKind::Comma, loc)
   }
   pub fn collon(loc: Loc) -> Self {
     Self::new(TokenKind::Colon, loc)
   }
-  pub fn lParen(loc: Loc) -> Self {
+  pub fn lparen(loc: Loc) -> Self {
     Self::new(TokenKind::LParen, loc)
   }
   pub fn rparen(loc: Loc) -> Self {
@@ -82,10 +86,10 @@ impl LexError {
   }
 }
 
-pub struct Lexer;
+pub struct Lexer { wc: WordChecker, }
 impl Lexer {
   pub fn new() -> Self {
-     Lexer
+     Lexer{wc: WordChecker::new()}
   }
   pub fn lex(&self, input: &str) -> Result<Vec<Token>, LexError> {
     let mut tokens = Vec::new();
@@ -98,12 +102,10 @@ impl Lexer {
         pos = p;
       }};
     }
-    let word_funcs = [self::lex_str, self::lex_number, self::lex_true, self::lex_false, self::lex_colon, self::lex_comma, 
-      self::lex_lparen, self::lex_rparen, self::lex_lbracket, self::lex_rbracket];
+
     while pos < input.len() {
 
-      let result =  word_funcs.into_iter().map(|f| f(input, pos))
-        .filter_map(|v|  v.ok()).collect::<Vec<_>>();
+      let result =  self.wc.check(input, pos);
 
       if result.len() > 1 {
         return Err(LexError::invalid_char(input[pos] as char, Loc(pos, pos + 1 )))
@@ -122,70 +124,77 @@ impl Lexer {
   }
 }
 
-
-fn lex_str(input: &[u8], mut pos: usize) -> Result<(Token, usize), LexError> {
-  let start = pos;
-  
-  pos += 1;
-  while pos < input.len() && input[pos] != b'"' {
-    pos += 1;
+pub struct WordChecker;
+impl WordChecker {
+  pub fn new() -> Self {
+     WordChecker
   }
-  let end = pos + 1;
-  if input[start] != b'"' || input[end - 1] != b'"' {
-    return Err(
-      LexError::invalid_char('"',  Loc(start, end),
-    ));
+
+  pub fn check(&self, input: &[u8], start: usize) -> Vec<(Token, usize)> {
+    fn lex_str(input: &[u8], mut pos: usize) -> Result<(Token, usize), LexError> {
+      let start = pos;
+      pos += 1;
+      while pos < input.len() && input[pos] != b'"' {
+        pos += 1;
+      }
+      let end = pos + 1;
+      if input[start] != b'"' || input[end - 1] != b'"' {
+        return Err(
+          LexError::invalid_char('"',  Loc(start, end),
+        ));
+      }
+      let s = from_utf8(&input[start..end]).unwrap().parse().unwrap();
+      Ok((Token::string(s, Loc(start, end)), end))
+    }
+
+    fn lex_number(input: &[u8], mut pos: usize) -> Result<(Token, usize), LexError> {
+      use std::str::from_utf8;
+      let start = pos;
+      while pos < input.len() && b"1234567890".contains(&input[pos]) {
+        pos += 1;
+      }
+      if start == pos {
+        return Err(
+          LexError::invalid_char(input[start] as char,  Loc(start, start+1),
+        ));
+      }
+      let n = from_utf8(&input[start..pos]).unwrap().parse().unwrap();
+      Ok((Token::number(n, Loc(start, pos)), pos))
+    }
+    fn lex_true(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
+      consume_bytes(input, start, b"true").map(|(_, end)| (Token::bool(true, Loc(start, end)), end))
+    }
+    fn lex_false(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
+      consume_bytes(input, start, b"false").map(|(_, end)| (Token::bool(false, Loc(start, end)), end))
+    }
+    fn lex_null(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
+      consume_bytes(input, start, b"null").map(|(_, end)| (Token::null(Loc(start, end)), end))
+    }
+    fn lex_comma(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
+      consume_bytes(input, start, b",").map(|(_, end)| (Token::comma(Loc(start, end)), end))
+    }
+    fn lex_colon(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
+      consume_bytes(input, start, b":").map(|(_, end)| (Token::collon(Loc(start, end)), end))
+    }
+    fn lex_lparen(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
+      consume_bytes(input, start, b"{").map(|(_, end)| (Token::lparen(Loc(start, end)), end))
+    }
+    fn lex_rparen(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
+      consume_bytes(input, start, b"}").map(|(_, end)| (Token::rparen(Loc(start, end)), end))
+    }
+    fn lex_lbracket(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
+      consume_bytes(input, start, b"[").map(|(_, end)| (Token::lbracket(Loc(start, end)), end))
+    }
+    fn lex_rbracket(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
+      consume_bytes(input, start, b"]").map(|(_, end)| (Token::rbracket(Loc(start, end)), end))
+    }
+
+    let word_funcs = [lex_str, lex_number, lex_true, lex_false, lex_null, lex_colon, 
+        lex_comma, lex_lparen, lex_rparen, lex_lbracket, lex_rbracket];
+    let result =  word_funcs.into_iter().map(|f| f(input, start))
+        .filter_map(|v|  v.ok()).collect::<Vec<_>>();
+    return result;
   }
-  let s = from_utf8(&input[start..end]).unwrap().parse().unwrap();
-  Ok((Token::string(s, Loc(start, end)), end))
-}
-
-fn lex_number(input: &[u8], mut pos: usize) -> Result<(Token, usize), LexError> {
-  use std::str::from_utf8;
-
-  let start = pos;
-  while pos < input.len() && b"1234567890".contains(&input[pos]) {
-    pos += 1;
-  }
-  if start == pos {
-    return Err(
-      LexError::invalid_char(input[start] as char,  Loc(start, start+1),
-    ));
-  }
-  let n = from_utf8(&input[start..pos]).unwrap().parse().unwrap();
-  Ok((Token::number(n, Loc(start, pos)), pos))
-}
-
-fn lex_true(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
-  consume_bytes(input, start, b"true").map(|(_, end)| (Token::bool(true, Loc(start, end)), end))
-}
-
-fn lex_false(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
-  consume_bytes(input, start, b"false").map(|(_, end)| (Token::bool(false, Loc(start, end)), end))
-}
-
-fn lex_comma(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
-  consume_bytes(input, start, b",").map(|(_, end)| (Token::comma(Loc(start, end)), end))
-}
-
-fn lex_colon(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
-  consume_bytes(input, start, b":").map(|(_, end)| (Token::collon(Loc(start, end)), end))
-}
-
-fn lex_lparen(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
-  consume_bytes(input, start, b"{").map(|(_, end)| (Token::lParen(Loc(start, end)), end))
-}
-
-fn lex_rparen(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
-  consume_bytes(input, start, b"}").map(|(_, end)| (Token::rparen(Loc(start, end)), end))
-}
-
-fn lex_lbracket(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
-  consume_bytes(input, start, b"[").map(|(_, end)| (Token::lbracket(Loc(start, end)), end))
-}
-
-fn lex_rbracket(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
-  consume_bytes(input, start, b"]").map(|(_, end)| (Token::rbracket(Loc(start, end)), end))
 }
 
 fn skip_space(input: &[u8], mut pos: usize) -> ((), usize) {
@@ -216,7 +225,7 @@ fn test_lexer() {
   assert_eq!(
     lexer.lex("{\"a\": [ [1, 2, 3,4], {} ]}"),
     Ok(vec![
-      Token::lParen(Loc(0, 1)),
+      Token::lparen(Loc(0, 1)),
       Token::string("\"a\"".to_string(), Loc(1, 4)),
       Token::collon(Loc(4, 5)),
       Token::lbracket(Loc(6, 7)),
@@ -230,7 +239,7 @@ fn test_lexer() {
       Token::number(4, Loc(17, 18)),
       Token::rbracket(Loc(18, 19)),
       Token::comma(Loc(19, 20)),
-      Token::lParen(Loc(21, 22)),
+      Token::lparen(Loc(21, 22)),
       Token::rparen(Loc(22, 23)),
       Token::rbracket(Loc(24, 25)),
       Token::rparen(Loc(25, 26))

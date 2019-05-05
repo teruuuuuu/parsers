@@ -2,7 +2,7 @@ use std::error::Error as StdError;
 use std::fmt;
 
 use super::lex::*; 
-use super::parse::*; 
+use super::parser::*; 
 
 pub struct Interpreter;
 

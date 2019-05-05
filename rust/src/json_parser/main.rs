@@ -3,7 +3,7 @@ use std::fmt;
 use std::io;
 
 use super::lex::*;
-// use super::parse::*;
+use super::parser::*;
 // use super::interpreter::*;
 
 pub fn main() {
@@ -12,15 +12,14 @@ pub fn main() {
   // let mut interp = Interpreter::new();
   // let mut compiler = RpnCompiler::new();
 
+  super::parser::main();
+
   let stdin = stdin();
   // 共有資源アクセスのために1バイト読み込むごとにロック、アンロックを繰り返すと時間がかかるから、
   // ここで明示的にlockしておいて共有資源じゃ無いようにして奥
   let stdin = stdin.lock();
   let stdin = BufReader::new(stdin);
   let mut lines = stdin.lines();
-
-  let tokens = lexer.lex(&"true true").unwrap();
-  println!("{:?}", tokens);
 
   loop {
     prompt("> ").unwrap();

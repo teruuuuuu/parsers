@@ -3,7 +3,7 @@ use std::fmt;
 use std::io;
 
 use super::lex::*;
-use super::parse::*;
+use super::parser::*;
 use super::interpreter::*;
 
 pub fn main() {
