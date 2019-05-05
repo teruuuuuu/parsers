@@ -1,8 +1,5 @@
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
-// use std::error::Error as StdError;
-// use std::fmt;
-// use std::str::FromStr;
 use std::iter::Peekable as Peekable;
 use super::lex::*; 
 
@@ -105,7 +102,9 @@ where
       tokens.next();
       Ok(Ast::null(loc))
     }
-    _ => parse_element(tokens)
+    _ => {
+      parse_element(tokens)
+    }
   }
 }
 
@@ -113,9 +112,9 @@ fn parse_element<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<Ast, ParseErro
 where
     Tokens: Iterator<Item = Token>,
 {
-  match parse_object(tokens) {
+  match parse_array(tokens) {
     Ok(x) => Ok(x),
-    Err(_) => parse_array(tokens),
+    Err(_) => parse_object(tokens),
   }
 }
 
@@ -131,7 +130,6 @@ where
         Some(Token {value: TokenKind::String(x), ..}) => {
           match tokens.next() {
             Some(Token {value: TokenKind::Colon, ..}) => {
-              // println!("{:?}", tokens.next());
               match parse_value(tokens) {
                 Ok(y) => Ok((Some((JString::new(x), y)), None)),
                 _ => Err(ParseError::Error),
@@ -146,95 +144,120 @@ where
     }
 
   let mut map: HashMap<JString, Ast> = HashMap::new();
-  tokens
-    .next()
-    .ok_or(ParseError::Error)
-    .and_then(|tok| match tok {
-      Token {value: TokenKind::LParen, loc: Loc(lstart, _)} => {
-          match parse_keyvalue(tokens) {
-            Ok((Some((k, v)), None)) => {
-              map.insert(k, v);
-              loop {
-                match tokens.next() {
-                  Some(Token {value: TokenKind::RParen, loc: Loc(_, lend)}) => {
-                    return Ok(Ast::object(JObject::new(map), Loc(lstart, lend)));
-                  },
-                  Some(Token {value: TokenKind::Comma, ..}) => {
-                    match parse_keyvalue(tokens) {
-                      Ok((Some((k, v)), None)) => {
-                        map.insert(k, v);
-                      },
-                      _ => {
-                        return Err(ParseError::Error);
-                      }
+  match tokens.peek().map(|tok| tok.clone()) {
+    Some(Token {value: TokenKind::LParen, loc: Loc(lstart, _)}) => {
+      tokens.next();
+        match parse_keyvalue(tokens) {
+          Ok((Some((k, v)), None)) => {
+            map.insert(k, v);
+            loop {
+              match tokens.next() {
+                Some(Token {value: TokenKind::RParen, loc: Loc(_, lend)}) => {
+                  return Ok(Ast::object(JObject::new(map), Loc(lstart, lend)));
+                },
+                Some(Token {value: TokenKind::Comma, ..}) => {
+                  match parse_keyvalue(tokens) {
+                    Ok((Some((k, v)), None)) => {
+                      map.insert(k, v);
+                    },
+                    _ => {
+                      return Err(ParseError::Error);
                     }
-                  },
-                  _ => {
-                    return Err(ParseError::Error);
                   }
+                },
+                _ => {
+                  return Err(ParseError::Error);
                 }
               }
-            },
-            Ok((None, Some(Loc(_, lend)))) => Ok(Ast::object(JObject::new(map), Loc(lstart, lend))),
-            _ => Err(ParseError::Error)
-          }
-        },
-      _ => Err(ParseError::Error),
-    }
-  )
+            }
+          },
+          Ok((None, Some(Loc(_, lend)))) => Ok(Ast::object(JObject::new(map), Loc(lstart, lend))),
+          _ => Err(ParseError::Error)
+        }
+      },
+    _ => Err(ParseError::Error),
+  }
 }
+
 
 fn parse_array<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<Ast, ParseError>
 where
     Tokens: Iterator<Item = Token>,
 {
-  tokens
-    .next()
-    .ok_or(ParseError::Error)
-    .and_then(|tok| match tok.value {
-      TokenKind::LParen => {
-        Err(ParseError::Error)
-      },
-      _ => Err(ParseError::Error),
-    }
-  )
-}
-
-
-
-pub struct JsonParser;
-impl JsonParser {
-  pub fn new() -> Self { JsonParser }
-
-  pub fn parse() -> Result<Ast, ParseError> {
-    Ok(Ast::object(JObject::new(HashMap::new()), Loc(0, 1)))
+  let mut vec = Vec::new();
+  match tokens.peek().map(|tok| tok.clone()) {
+    Some(Token {value: TokenKind::LBracket, loc: Loc(lstart, _)}) => {
+      tokens.next();
+      match parse_value(tokens) {
+        Ok(x) => {
+          vec.push(x);
+          loop {
+            match tokens.peek() {
+              Some(Token {value: TokenKind::Comma, .. }) => {
+                tokens.next();
+                match parse_value(tokens) {
+                  Ok(x) => {
+                    vec.push(x);
+                  },
+                  _ => {
+                    return Err(ParseError::Error);
+                  }
+                };
+              },
+              Some(Token {value: TokenKind::RBracket, loc: Loc(_, lend)}) => {
+                return Ok(Ast::array(JArray::new(vec), Loc(lstart, *lend)));
+              },
+              _ => {
+                return Err(ParseError::Error);
+              }
+            }
+          }
+        },
+        _ => {
+          match tokens.next() {
+            Some(Token {value: TokenKind::RBracket, loc: Loc(_, lend)}) => {
+              Ok(Ast::array(JArray::new(vec), Loc(lstart, lend)))
+            },
+            _ => Err(ParseError::Error)
+          }
+        }
+      }
+    },
+    _ => Err(ParseError::Error)
   }
 }
+
+
+
+fn parse<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<Ast, ParseError>
+where
+    Tokens: Iterator<Item = Token>,
+{
+  parse_element(tokens)
+}
+
 
 pub fn main() {
   let mut tokens = &mut vec![
       Token::lparen(Loc(0, 1)),
       Token::string("\"a\"".to_string(), Loc(1, 4)),
       Token::collon(Loc(4, 5)),
-      // Token::lbracket(Loc(6, 7)),
-      // Token::lbracket(Loc(8, 9)),
+      Token::lbracket(Loc(6, 7)),
+      Token::lbracket(Loc(8, 9)),
       Token::number(1, Loc(9, 10)),
-      // Token::comma(Loc(10, 11)),
-      // Token::number(2, Loc(12, 13)),
-      // Token::comma(Loc(13, 14)),
-      // Token::number(3, Loc(15, 16)),
-      // Token::comma(Loc(16, 17)),
-      // Token::number(4, Loc(17, 18)),
-      // Token::rbracket(Loc(18, 19)),
-      // Token::comma(Loc(19, 20)),
-      // Token::lparen(Loc(21, 22)),
-      // Token::rparen(Loc(22, 23)),
-      // Token::rbracket(Loc(24, 25)),
+      Token::comma(Loc(10, 11)),
+      Token::number(2, Loc(12, 13)),
+      Token::comma(Loc(13, 14)),
+      Token::number(3, Loc(15, 16)),
+      Token::comma(Loc(16, 17)),
+      Token::number(4, Loc(17, 18)),
+      Token::rbracket(Loc(18, 19)),
+      Token::comma(Loc(19, 20)),
+      Token::lparen(Loc(21, 22)),
+      Token::rparen(Loc(22, 23)),
+      Token::rbracket(Loc(24, 25)),
       Token::rparen(Loc(25, 26))
     ].into_iter().peekable();
 
-  println!("{:?}", parse_value(tokens));
-  // println!("{:?}", JObject::new(HashMap::new()));
-  // println!("{:?}", Ast::object(JObject::new(HashMap::new()), Loc(0, 1)));
-  // println!("{:?}", Ast::object(JObject::new(HashMap::new()), Loc(0, 1)));
+  println!("{:?}", parse(tokens));
 }
