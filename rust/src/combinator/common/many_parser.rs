@@ -1,8 +1,7 @@
 use super::parser::*;
 use super::parse_result::*;
-use super::string_parser::StringParser;
 
-struct ManyParser<T> {parser: Box<Parser<T>>}
+pub struct ManyParser<T> {parser: Box<Parser<T>>}
 impl<T> ManyParser<T> {
   pub fn new(parser: Box<Parser<T>>) -> Self {
     Self {parser: parser}
@@ -29,6 +28,8 @@ impl <T>Parser<Vec<T>> for ManyParser<T> {
 
 #[test]
 fn test_lexer() {
+  use super::string_parser::StringParser;
+  
   let parser1 = ManyParser::new(
     Box::new(StringParser::new("hello".to_string())));
 
