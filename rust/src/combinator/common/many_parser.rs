@@ -28,10 +28,10 @@ impl <T>Parser<Vec<T>> for ManyParser<T> {
 
 #[test]
 fn test_lexer() {
-  use super::string_parser::StringParser;
+  use super::word_parser::WordParser;
   
   let parser1 = ManyParser::new(
-    Box::new(StringParser::new("hello".to_string())));
+    Box::new(WordParser::new("hello".to_string())));
 
   let result1 = parser1.parse("hello".to_string());
   assert_eq!(result1.result(), true);

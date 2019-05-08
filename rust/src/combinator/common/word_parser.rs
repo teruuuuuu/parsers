@@ -1,14 +1,14 @@
 use super::parser::*;
 use super::parse_result::*;
 
-pub struct StringParser {str: String}
-impl StringParser {
+pub struct WordParser {str: String}
+impl WordParser {
   pub fn new(str: String) -> Self {
     Self {str: str}
   }
 }
 
-impl Parser<String> for StringParser {
+impl Parser<String> for WordParser {
   fn parse(&self, input: String) -> ParseResult<String> {
     if input.len() >= self.str.len() && input[..self.str.len()] == self.str {
       ParseResult::ok(self.str.to_string(), input[self.str.len()..].to_string())
@@ -20,7 +20,7 @@ impl Parser<String> for StringParser {
 
 #[test]
 fn test_lexer() {
-  let parser1 = StringParser::new("hello".to_string());
+  let parser1 = WordParser::new("hello".to_string());
   let result1 = parser1.parse("hello".to_string());
   assert_eq!(result1.result(), true);
   assert_eq!(result1.next(), "".to_string());

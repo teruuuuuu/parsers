@@ -24,11 +24,11 @@ impl <T,U>Parser<(T,U)> for Pair2Parser<T,U> {
 #[test]
 fn test_lexer() {
   use super::many_parser::*;
-  use super::string_parser::*;
+  use super::word_parser::WordParser;
 
   let parser1 = Pair2Parser::new(
-    Box::new(ManyParser::new(Box::new(StringParser::new("hello".to_string())))),
-    Box::new(StringParser::new("world".to_string())));
+    Box::new(ManyParser::new(Box::new(WordParser::new("hello".to_string())))),
+    Box::new(WordParser::new("world".to_string())));
 
   let result1 = parser1.parse("helloworld".to_string());
   assert_eq!(result1.result(), true);

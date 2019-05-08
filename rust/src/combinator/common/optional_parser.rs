@@ -19,8 +19,8 @@ impl <T>Parser<Option<T>> for OptionalParser<T> {
 
 #[test]
 fn test_lexer() {
-  use super::string_parser::*;
-  let parser1 = OptionalParser::new(Box::new(StringParser::new("hello".to_string())));
+  use super::word_parser::WordParser;
+  let parser1 = OptionalParser::new(Box::new(WordParser::new("hello".to_string())));
   let result1 = parser1.parse("hello".to_string());
   assert_eq!(result1.result(), true);
   assert_eq!(result1.next(), "".to_string());
