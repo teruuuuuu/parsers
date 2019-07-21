@@ -7,7 +7,7 @@ import org.scalatest.FlatSpec
 class JArrayParserTest extends FlatSpec{
 
   "parse" should "successt" in {
-    val parser = JParser.array()
+    val parser = JArrayParser
 
     val result1 = parser.parse(" [ ] ")
     assert(result1.isInstanceOf[ParseOk[JArray]])

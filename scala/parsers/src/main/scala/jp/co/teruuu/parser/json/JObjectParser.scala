@@ -4,12 +4,12 @@ import jp.co.teruuu.parser.common._
 import jp.co.teruuu.parser.json.`type`.{JArray, JObject, JString, JValue}
 
 object JObjectParser extends JParser[JObject] {
-  val sp = Parser.string(" ").many()
-  val leftP = new Pair3(sp, Parser.string("{"), sp)
-  val rightP = new Pair3(sp, Parser.string("}"), sp)
-  val kvP = new Pair3(new Pair3(sp, JStringParser, sp), Parser.string(":"), new Pair3(sp, JParser.value(), sp))
-  val kvsP = new Pair2(Parser.string(","), kvP)
-  val parser = (new Pair2(kvP, kvsP.many())).option()
+  lazy val sp = Parser.string(" ").many()
+  lazy val leftP = new Pair3(sp, Parser.string("{"), sp)
+  lazy val rightP = new Pair3(sp, Parser.string("}"), sp)
+  lazy val kvP = new Pair3(new Pair3(sp, JStringParser, sp), Parser.string(":"), new Pair3(sp, JValueParser, sp))
+  lazy val kvsP = new Pair2(Parser.string(","), kvP)
+  lazy val parser = (new Pair2(kvP, kvsP.many())).option()
 
   override def parse(input: String): ParseResult[JObject] = {
     leftP.parse(input) match {

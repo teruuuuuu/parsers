@@ -4,7 +4,7 @@ import jp.co.teruuu.parser.common._
 import jp.co.teruuu.parser.json.`type`.JValue
 
 object JsonParser extends JParser[JValue]{
-  val parser = new Pair2(JObjectParser.jor(JArrayParser), Parser.eof)
+  lazy val parser = new Pair2(JObjectParser.jor(JArrayParser), Parser.eof)
 
   override def parse(input: String): ParseResult[JValue] = {
     parser.parse(input) match {

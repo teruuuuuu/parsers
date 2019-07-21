@@ -7,7 +7,7 @@ import org.scalatest.FlatSpec
 class JsonParserTest extends FlatSpec {
 
   "parse" should "successt" in {
-    val parser = JParser.json
+    val parser = JsonParser
 
     val result1 = parser.parse(" {\"a\": [ [1, 2, 3,4], {} ]} ")
     assert(result1.isInstanceOf[ParseOk[JValue]])
@@ -24,7 +24,7 @@ class JsonParserTest extends FlatSpec {
   }
 
   "parse" should "fail" in {
-    val parser = JParser.json
+    val parser = JsonParser
 
     val result1 = parser.parse(" {\"a\": [ [1, 2, 3,4], {} ]}, {}")
     assert(result1.isInstanceOf[ParseNg[_]])

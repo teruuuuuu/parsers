@@ -7,7 +7,7 @@ import org.scalatest.FlatSpec
 class JNumberParserTest extends FlatSpec{
 
   "parse" should "successt" in {
-    val parser = JParser.number()
+    val parser = JNumberParser
 
     val result1 = parser.parse("123.456e-234")
     assert(result1.isInstanceOf[ParseOk[_]])

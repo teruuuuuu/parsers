@@ -7,7 +7,7 @@ import org.scalatest.FlatSpec
 class JBoolParserTest extends FlatSpec{
 
   "parse" should "successt" in {
-    val parser = JParser.bool()
+    val parser = JBoolParser
 
     val result1 = parser.parse("true")
     assert(result1.isInstanceOf[ParseOk[JBool]])
@@ -19,7 +19,7 @@ class JBoolParserTest extends FlatSpec{
   }
 
   "parse" should "fail" in {
-    val parser = JParser.bool()
+    val parser = JBoolParser
 
     val result1 = parser.parse("True")
     assert(result1.isInstanceOf[ParseNg[JBool]])

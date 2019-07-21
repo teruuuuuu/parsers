@@ -7,7 +7,7 @@ import org.scalatest.FlatSpec
 class JObjectParserTest extends FlatSpec{
 
   "parse" should "successt" in {
-    val parser = JParser.obj()
+    val parser = JObjectParser
 
     val result1 = parser.parse(" { } ")
     assert(result1.isInstanceOf[ParseOk[JObject]])

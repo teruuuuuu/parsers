@@ -7,7 +7,7 @@ import org.scalatest.FlatSpec
 class JNullParserTest extends FlatSpec{
 
   "parse" should "successt" in {
-    val parser = JParser.nu()
+    val parser = JNullParser
 
     val result1 = parser.parse("null")
     assert(result1.isInstanceOf[ParseOk[JNull]])
@@ -15,7 +15,7 @@ class JNullParserTest extends FlatSpec{
   }
 
   "parse" should "fail" in {
-    val parser = JParser.nu()
+    val parser = JNullParser
 
     val result1 = parser.parse("NULL")
     assert(result1.isInstanceOf[ParseNg[JNull]])

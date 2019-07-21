@@ -4,10 +4,10 @@ import jp.co.teruuu.parser.common._
 import jp.co.teruuu.parser.json.`type`.{JArray, JValue}
 
 object JArrayParser extends JParser[JArray] {
-  val sp = Parser.string(" ").many()
-  val leftP = new Pair3(sp, Parser.string("["), sp)
-  val rightP = new Pair3(sp, Parser.string("]"), sp)
-  val parser = (new Pair2(new Pair3(sp, JParser.value(), sp), (new Pair2(Parser.string(","), (new Pair3(sp, JParser.value(), sp)))).many())).option()
+  lazy val sp = Parser.string(" ").many()
+  lazy val leftP = new Pair3(sp, Parser.string("["), sp)
+  lazy val rightP = new Pair3(sp, Parser.string("]"), sp)
+  lazy val parser = (new Pair2(new Pair3(sp, JValueParser, sp), (new Pair2(Parser.string(","), (new Pair3(sp, JValueParser, sp)))).many())).option()
 
 
   override def parse(input: String): ParseResult[JArray] = {

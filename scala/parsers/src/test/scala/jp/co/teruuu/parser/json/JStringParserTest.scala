@@ -7,7 +7,7 @@ import org.scalatest.FlatSpec
 class JStringParserTest extends FlatSpec{
 
   "parse" should "successt" in {
-    val parser = JParser.string()
+    val parser = JStringParser
 
     val result1 = parser.parse("\"key\"")
     assert(result1.isInstanceOf[ParseOk[_]])

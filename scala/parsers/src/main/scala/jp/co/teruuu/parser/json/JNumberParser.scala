@@ -4,13 +4,13 @@ import jp.co.teruuu.parser.common._
 import jp.co.teruuu.parser.json.`type`.{JNumber, JString}
 
 object JNumberParser extends JParser[JNumber] {
-  val signP = Parser.string("+").or(Parser.string("-")).option()
-  val baseP = Parser.string("E").or(Parser.string("e"))
-  val ztonP = Parser.string("0").or(Parser.string("1")).or(Parser.string("2")).or(Parser.string("3")).
+  lazy val signP = Parser.string("+").or(Parser.string("-")).option()
+  lazy val baseP = Parser.string("E").or(Parser.string("e"))
+  lazy val ztonP = Parser.string("0").or(Parser.string("1")).or(Parser.string("2")).or(Parser.string("3")).
     or(Parser.string("4")).or(Parser.string("5")).or(Parser.string("6")).
     or(Parser.string("7")).or(Parser.string("8")).or(Parser.string("9"))
-  val parser1 = new Pair2(new Pair2(signP, ztonP.plus()), (new Pair2(Parser.string("."), ztonP.plus())).option())
-  val parser2 = (new Pair3(baseP, signP, ztonP.plus())).option()
+  lazy val parser1 = new Pair2(new Pair2(signP, ztonP.plus()), (new Pair2(Parser.string("."), ztonP.plus())).option())
+  lazy val parser2 = (new Pair3(baseP, signP, ztonP.plus())).option()
 
   override def parse(input: String): ParseResult[JNumber] = {
     parser1.parse(input) match {
