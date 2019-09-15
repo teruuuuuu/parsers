@@ -1,3 +1,8 @@
 package jp.co.teruuu.parser.json.`type`
 
-trait JValue
+trait JValue {
+  def toSpray(): spray.json.JsValue
+
+//  import fommil.sjs.FamilyFormats._
+//  def convertTo[A] = toSpray.convertTo[A]
+}

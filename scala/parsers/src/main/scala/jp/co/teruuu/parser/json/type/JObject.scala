@@ -11,4 +11,10 @@ case class JObject(map: Map[JString, JValue]) extends JValue {
       case _ => false
     }
   }
+
+  def toSpray(): spray.json.JsValue = {
+    spray.json.JsObject(map.toList.map{a => a match{
+      case (key, value) => (key.value, value.toSpray())
+    }}.toMap)
+  }
 }

@@ -10,4 +10,9 @@ case class JArray(value: List[JValue]) extends JValue {
       case _ => false
     }
   }
+
+  def toSpray(): spray.json.JsValue = {
+    spray.json.JsArray(value.map(_.toSpray()).toVector)
+  }
+
 }

@@ -8,4 +8,8 @@ case class JNumber(value: Int, decimal: Int, base: Int) extends JValue {
       case _ => false
     }
   }
+
+  def toSpray(): spray.json.JsValue = {
+    spray.json.JsNumber((value * Math.pow(10, base)))
+  }
 }
