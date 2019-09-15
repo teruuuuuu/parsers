@@ -1,7 +1,6 @@
 package jp.co.teruuu.parser.json
 
 import jp.co.teruuu.parser.common.{ParseNg, ParseOk, ParseResult, Parser}
-import jp.co.teruuu.parser.json.`type`.JNull
 
 object JNullParser extends JParser[JNull] {
 

@@ -1,7 +1,6 @@
 package jp.co.teruuu.parser.json
 
 import jp.co.teruuu.parser.common.{ParseNg, ParseOk, ParseResult}
-import jp.co.teruuu.parser.json.`type`.JValue
 
 class JOrParser[T <: JValue,U <: JValue](parser1: JParser[T], parser2: JParser[U]) extends JParser[JValue] {
 

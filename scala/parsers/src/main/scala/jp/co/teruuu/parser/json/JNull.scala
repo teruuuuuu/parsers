@@ -1,4 +1,4 @@
-package jp.co.teruuu.parser.json.`type`
+package jp.co.teruuu.parser.json
 
 case class JNull() extends JValue {
 

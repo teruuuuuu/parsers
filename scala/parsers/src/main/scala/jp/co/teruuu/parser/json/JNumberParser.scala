@@ -1,7 +1,6 @@
 package jp.co.teruuu.parser.json
 
 import jp.co.teruuu.parser.common._
-import jp.co.teruuu.parser.json.`type`.{JNumber, JString}
 
 object JNumberParser extends JParser[JNumber] {
   lazy val signP = Parser.string("+").or(Parser.string("-")).option()

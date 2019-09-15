@@ -1,7 +1,6 @@
 package jp.co.teruuu.parser.json
 
 import jp.co.teruuu.parser.common._
-import jp.co.teruuu.parser.json.`type`.{JArray, JValue}
 
 object JArrayParser extends JParser[JArray] {
   lazy val sp = Parser.string(" ").many()

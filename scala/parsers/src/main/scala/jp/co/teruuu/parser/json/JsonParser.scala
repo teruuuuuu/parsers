@@ -1,7 +1,6 @@
 package jp.co.teruuu.parser.json
 
 import jp.co.teruuu.parser.common._
-import jp.co.teruuu.parser.json.`type`.JValue
 
 object JsonParser extends JParser[JValue]{
   lazy val parser = new Pair2(JObjectParser.jor(JArrayParser), Parser.eof)

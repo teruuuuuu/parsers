@@ -1,7 +1,6 @@
 package jp.co.teruuu.parser.json
 
 import jp.co.teruuu.parser.common.{ParseNg, ParseOk}
-import jp.co.teruuu.parser.json.`type`.JBool
 import org.scalatest.FlatSpec
 
 class JBoolParserTest extends FlatSpec{

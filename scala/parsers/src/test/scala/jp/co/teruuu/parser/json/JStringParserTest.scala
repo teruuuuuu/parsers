@@ -1,7 +1,6 @@
 package jp.co.teruuu.parser.json
 
 import jp.co.teruuu.parser.common.{ParseNg, ParseOk}
-import jp.co.teruuu.parser.json.`type`.JString
 import org.scalatest.FlatSpec
 
 class JStringParserTest extends FlatSpec{

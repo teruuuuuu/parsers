@@ -1,4 +1,4 @@
-package jp.co.teruuu.parser.json.`type`
+package jp.co.teruuu.parser.json
 
 case class JNumber(value: Int, decimal: Int, base: Int) extends JValue {
 

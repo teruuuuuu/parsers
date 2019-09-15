@@ -1,4 +1,4 @@
-package jp.co.teruuu.parser.json.`type`
+package jp.co.teruuu.parser.json
 
 case class JArray(value: List[JValue]) extends JValue {
   def getVal = value
