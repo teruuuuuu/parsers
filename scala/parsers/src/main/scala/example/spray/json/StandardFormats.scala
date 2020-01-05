@@ -8,7 +8,7 @@ trait StandardFormats {
 
   class OptionFormat[T :JF] extends JF[Option[T]] {
     def read(value: JsValue) = value match {
-//      case JsNull => None
+      case JsNull => None
       case x => Some(x.convertTo[T])
     }
     // allows reading the JSON as a Some (useful in container formats)

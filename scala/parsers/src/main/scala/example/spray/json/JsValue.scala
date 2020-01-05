@@ -9,3 +9,5 @@ object JsString {
   val empty = JsString("")
   def apply(value: Symbol) = new JsString(value.name)
 }
+
+case object JsNull extends JsValue
