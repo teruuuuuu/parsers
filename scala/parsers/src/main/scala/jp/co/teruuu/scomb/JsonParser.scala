@@ -68,9 +68,26 @@ object JsonParser extends SCombinator {
   lazy val jstring: Parser[JValue] = rule(string ^^ {v => JString(v)})
 
   lazy val jnumber: Parser[JValue] = rule{for {
-    value <- (set('0'to'9').+) ^^ { case digits => JNumber(digits.mkString.toInt) }
+    sign <- ($("+") | $("-")).? ^^ {
+      case Some("+") => 1
+      case Some("-") => -1
+      case None => 1
+    }
+    value <- set('0'to'9').+ ^^ { _.mkString.toInt }
+    fraction <- ($(".") ~ set('0'to'9').+).? ^^ {
+      case Some(_ ~ b) =>
+        b.mkString.toInt / Math.pow(10, b.length)
+      case None => 0
+    }
+    expo <- (($("e") | $("E")) ~ ($("+") | $("-")).? ~ set('0'to'9').+).? ^^ {
+      case Some(_ ~ Some("-") ~ v) =>
+        Math.pow(0.1, v.mkString.toInt)
+      case Some(_ ~ _ ~ v) =>
+        Math.pow(10, v.mkString.toInt)
+      case None => 1
+    }
     _ <- DefaultSpace.*
-  } yield value}
+  } yield JNumber(sign * (value * expo + fraction * expo))}
 
   lazy val jboolean: Parser[JValue] = rule(
     TRUE ^^ {_ => JBoolean(true)}

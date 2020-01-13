@@ -37,6 +37,12 @@ class JsonParserSpec extends FunSpec with DiagrammedAssertions {
       assert(Some(JNumber(300)) == parse(" 300").value)
       assert(Some(JNumber(300)) == parse("300 ").value)
       assert(Some(JNumber(300)) == parse(" 300 ").value)
+      assert(Some(JNumber(-300)) == parse(" -300 ").value)
+      assert(Some(JNumber(-300.456)) == parse(" -300.456 ").value)
+      assert(Some(JNumber(300.456)) == parse(" +300.456 ").value)
+      assert(Some(JNumber(-30045600)) == parse(" -300.456E+5 ").value)
+      assert(Some(JNumber(30045.6)) == parse(" +300.456E2 ").value)
+      assert(Some(JNumber(30.0456)) == parse(" +300.456E-1 ").value)
     }
 
     it("string") {
