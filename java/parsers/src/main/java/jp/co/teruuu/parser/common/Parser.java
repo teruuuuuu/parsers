@@ -8,8 +8,18 @@ import jp.co.teruuu.parser.json.type.JValue;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * パーサー用インターフェース
+ * @param <T> パース結果の型
+ */
 public interface Parser<T> {
+    /**
+     * パースする
+     * @param input
+     * @return
+     */
     ParseResult<T> parse(String input);
+
     default Parser<T> or(Parser<T> rhs) {
         return new Or<>(this, rhs);
     }
