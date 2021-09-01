@@ -1,6 +1,6 @@
 package jp.co.teruuu.parser.common
 
-class EOFParser() extends Parser[String] {
+object EOFParser extends Parser[String] {
 
   override def parse(input: String): ParseResult[String] = {
     input.length == 0 match {

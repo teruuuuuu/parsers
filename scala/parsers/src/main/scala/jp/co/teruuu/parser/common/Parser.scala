@@ -9,7 +9,7 @@ trait Parser[T] {
   def pair3[U,V](cps: Parser[U], rps: Parser[V]): Parser[(T,U,V)] = new Pair3(this, cps, rps)
   def or(p: Parser[T]): Parser[T] = new OrParser(this, p)
   def option(): Parser[Option[T]] = new OptionalParser[T](this)
-  def eof:Parser[String] = new EOFParser()
+  def eof:Parser[String] = EOFParser
   def string(literal: String):Parser[String] = new StringParser(literal)
   def stop(stop: String, escapes: Map[String, String]):Parser[String] = new StopWithEscape(stop, escapes)
 

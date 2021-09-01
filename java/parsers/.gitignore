@@ -1,5 +1,9 @@
 .gradle
 .idea
+.classpath
+.project
+.settings
 build
 gradle
 out
+/bin/

@@ -6,6 +6,10 @@ import jp.co.teruuu.parser.common.type.Tuple3;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Main
+ *
+ */
 public class Main {
     public static void main(String[] args) {
         pair2Parser();
@@ -84,4 +88,5 @@ public class Main {
         System.out.println(stopParser.parse("HelloWorld"));
         System.out.println(stopParser.parse("World Hello"));
     }
+
 }
