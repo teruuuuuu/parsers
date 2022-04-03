@@ -1,0 +1,16 @@
+version: "3.8"
+services:
+
+  ccombinator:
+    build:
+      context: docker
+      dockerfile: Dockerfile
+    container_name: ccombinator
+    tty: true
+    cpus: 4
+    volumes:
+      - ./ccombinator/:/root/ccombinator/
+      - ./build:/root/build/
+      - ./CMakeLists.txt:/root/CMakeLists.txt
+      - ./vscode-server:/root/.vscode-server/
+      - ./vscode:/root/.vscode/
