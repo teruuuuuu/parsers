@@ -82,11 +82,17 @@ repeat1 p = Parser (\inp -> case repeat' p inp [] of
         _ -> PFail "" inp
     )
 
-repeatBy :: Parser a -> Parser b -> Parser [a]
-repeatBy p sep = do
+repeat1By :: Parser a -> Parser b -> Parser [a]
+repeat1By p sep = do
     h <- p
     t <- repeat0 $ snd <$> (sep `pand` p)
     pure $ h : t
+
+repeat0By :: Parser a -> Parser b -> Parser [a]
+repeat0By p sep = Parser (\inp -> case parse (repeat0By p sep) inp of
+        PFail r n -> PSuccess [] n
+        PSuccess r n -> PSuccess r n
+    )
 
 repeat' :: Parser a -> String -> [a] -> ParseResult [a]
 repeat' p inp c = case parse p inp of

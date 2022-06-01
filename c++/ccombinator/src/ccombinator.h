@@ -263,6 +263,31 @@ class CCombinator {
       }
     };
   }
+
+  template <typename V, typename S>
+  Parser<std::vector<V>> repeat0By(Parser<V> parser, Parser<S> separator) {
+    std::function<V(std::tuple<S, V>)> f1 = [](std::tuple<S, V> a) {
+      return std::get<V>(a);
+    };
+    Parser<std::vector<V>> sub_parser =
+        repeat0(map(andp(separator, parser), f1));
+
+    std::function<std::vector<V>(std::tuple<std::optional<V>, std::vector<V>>)>
+        f2 = [](std::tuple<std::optional<V>, std::vector<V>> a) {
+          std::optional<V> a1 = std::get<std::optional<V>>(a);
+          std::vector<V> a2 = std::get<std::vector<V>>(a);
+          if (a1) {
+            a2.insert(a2.begin(), a1.value());
+          }
+          return a2;
+        };
+
+    Parser<std::optional<V>> frontopt = optional(parser);
+    Parser<std::tuple<std::optional<V>, std::vector<V>>> seqparser =
+        andp(frontopt, sub_parser);
+    return map(seqparser, f2);
+    // return map(andp(optional(parser), sub_parser), f2);
+  }
 };
 
 }  // namespace ccombinator

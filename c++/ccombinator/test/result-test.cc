@@ -32,9 +32,9 @@ TEST(ccombinator, parser) {
   std::cout << result_success.value_ << std::endl;
 }
 
-class OrCombinator : public CCombinator<std::string> {
+class ParseAAAorBBB : public CCombinator<std::string> {
  public:
-  explicit OrCombinator() : CCombinator<std::string>(gen_parser()) {}
+  explicit ParseAAAorBBB() : CCombinator<std::string>(gen_parser()) {}
 
   Parser<std::string> gen_parser(void) {
     auto p1 = pstr("aaa");
@@ -44,7 +44,7 @@ class OrCombinator : public CCombinator<std::string> {
 };
 
 TEST(ccombinator, orp) {
-  auto scombinator = OrCombinator();
+  auto scombinator = ParseAAAorBBB();
   auto result = scombinator.parse("bbb");
   ASSERT_TRUE(std::holds_alternative<Success<std::string>>(result));
   auto result_success = std::get<Success<std::string>>(result);
