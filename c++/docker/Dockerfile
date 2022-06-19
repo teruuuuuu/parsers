@@ -20,6 +20,11 @@ RUN mkdir /root/lib && \
     cmake .. && make && make install && \
     cd /root/lib && rm -rf /root/lib/googletest
 
-# gdb
-RUN apt-get install -y gdb && \
+# clang
+RUN apt-get update && \
+    apt-get install -y clang clang-format && \
     apt-get clean
+
+# gdb
+# RUN apt-get install -y gdb && \
+#     apt-get clean

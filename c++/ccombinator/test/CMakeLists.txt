@@ -9,6 +9,9 @@ add_executable(parser-test test.cc)
 target_sources(parser-test
 PRIVATE
     result-test.cc
+    json/json-parser.cc
+    json/json-test.cc
+    json/json.cc
 )
 target_link_libraries(parser-test
 PRIVATE

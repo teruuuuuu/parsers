@@ -7,18 +7,18 @@ namespace ccombinator {
 
 class StrCombinator : public CCombinator<std::string> {
  public:
-  explicit StrCombinator()
-      : CCombinator<std::string>(gen_parser()) {}
+  explicit StrCombinator() : CCombinator<std::string>(gen_parser()) {}
 
   Parser<std::string> gen_parser(void) {
     auto p1 = optional(pstr("aaaa"));
-    std::function<std::string(std::optional<std::string>)> f1 = [](std::optional<std::string> optStr) {
-      if (optStr) {
-        return optStr.value();
-      } else {
-        return static_cast<std::string>("not much");
-      }
-    };
+    std::function<std::string(std::optional<std::string>)> f1 =
+        [](std::optional<std::string> optStr) {
+          if (optStr) {
+            return optStr.value();
+          } else {
+            return static_cast<std::string>("not much");
+          }
+        };
     Parser<std::optional<std::string>> p2 = optional(pstr("aaaa"));
     return map(p1, f1);
   }
@@ -34,8 +34,7 @@ TEST(ccombinator, parser) {
 
 class OrCombinator : public CCombinator<std::string> {
  public:
-  explicit OrCombinator()
-      : CCombinator<std::string>(gen_parser()) {}
+  explicit OrCombinator() : CCombinator<std::string>(gen_parser()) {}
 
   Parser<std::string> gen_parser(void) {
     auto p1 = pstr("aaa");
@@ -54,15 +53,15 @@ TEST(ccombinator, orp) {
 
 class AndCombinator : public CCombinator<std::string> {
  public:
-  explicit AndCombinator()
-      : CCombinator<std::string>(gen_parser()) {}
+  explicit AndCombinator() : CCombinator<std::string>(gen_parser()) {}
 
   Parser<std::string> gen_parser(void) {
     auto p1 = pstr("aaa");
     auto p2 = pstr("bbb");
-    std::function<std::string(std::tuple<std::string, std::string>)> f1 = [](std::tuple<std::string, std::string> input) {
-      return std::get<0>(input) + std::get<1>(input);
-    };
+    std::function<std::string(std::tuple<std::string, std::string>)> f1 =
+        [](std::tuple<std::string, std::string> input) {
+          return std::get<0>(input) + std::get<1>(input);
+        };
     auto p3 = andp(p1, p2);
     return map(p3, f1);
   }
@@ -78,19 +77,19 @@ TEST(ccombinator, andp) {
 
 class Repeat0Combinator : public CCombinator<std::string> {
  public:
-  explicit Repeat0Combinator()
-      : CCombinator<std::string>(gen_parser()) {}
+  explicit Repeat0Combinator() : CCombinator<std::string>(gen_parser()) {}
 
   Parser<std::string> gen_parser(void) {
     auto p1 = pstr("abc");
     auto p2 = repeat0(p1);
-    std::function<std::string(std::vector<std::string>)> f1 = [](std::vector<std::string> input) {
-      std::string ret = "";
-      for (std::string a : input) {
-        ret += a;
-      }
-      return ret;
-    };
+    std::function<std::string(std::vector<std::string>)> f1 =
+        [](std::vector<std::string> input) {
+          std::string ret = "";
+          for (std::string a : input) {
+            ret += a;
+          }
+          return ret;
+        };
     return map(p2, f1);
   }
 };
@@ -110,19 +109,19 @@ TEST(ccombinator, repeat0parser) {
 
 class Repeat1Combinator : public CCombinator<std::string> {
  public:
-  explicit Repeat1Combinator()
-      : CCombinator<std::string>(gen_parser()) {}
+  explicit Repeat1Combinator() : CCombinator<std::string>(gen_parser()) {}
 
   Parser<std::string> gen_parser(void) {
     auto p1 = pstr("abc");
     auto p2 = repeat1(p1);
-    std::function<std::string(std::vector<std::string>)> f1 = [](std::vector<std::string> input) {
-      std::string ret = "";
-      for (std::string a : input) {
-        ret += a;
-      }
-      return ret;
-    };
+    std::function<std::string(std::vector<std::string>)> f1 =
+        [](std::vector<std::string> input) {
+          std::string ret = "";
+          for (std::string a : input) {
+            ret += a;
+          }
+          return ret;
+        };
     return map(p2, f1);
   }
 };
@@ -140,15 +139,15 @@ TEST(ccombinator, repeat1parser) {
 
 class FlatMapCombinator : public CCombinator<std::string> {
  public:
-  explicit FlatMapCombinator()
-      : CCombinator<std::string>(gen_parser()) {}
+  explicit FlatMapCombinator() : CCombinator<std::string>(gen_parser()) {}
 
   Parser<std::string> gen_parser(void) {
     auto p1 = pstr("abc");
     auto p2 = pstr("def");
 
     // autoだと推論できない
-    std::function<Parser<std::string>(std::string)> f2 = [&, p2](std::string a) {
+    std::function<Parser<std::string>(std::string)> f2 = [&,
+                                                          p2](std::string a) {
       std::function<std::string(std::string)> f = [a](std::string b) {
         return a + b;
       };
@@ -169,24 +168,26 @@ TEST(ccombinator, flatmapparser) {
 
 class ExceptCombinator : public CCombinator<std::string> {
  public:
-  explicit ExceptCombinator()
-      : CCombinator<std::string>(gen_parser()) {}
+  explicit ExceptCombinator() : CCombinator<std::string>(gen_parser()) {}
 
   Parser<std::string> gen_parser(void) {
     auto p1 = pstr("\"");
     auto p2 = repeat0(except('"'));
 
-    std::function<Parser<std::string>(std::string)> f12 = [&, p2](std::string a) {
-      std::function<std::string(std::vector<std::string>)> f = [](std::vector<std::string> list) {
-        std::string ret = "";
-        for (std::string b : list) {
-          ret += b;
-        }
-        return ret;
-      };
+    std::function<Parser<std::string>(std::string)> f12 = [&,
+                                                           p2](std::string a) {
+      std::function<std::string(std::vector<std::string>)> f =
+          [](std::vector<std::string> list) {
+            std::string ret = "";
+            for (std::string b : list) {
+              ret += b;
+            }
+            return ret;
+          };
       return map(p2, f);
     };
-    std::function<Parser<std::string>(std::string)> f21 = [&, p1](std::string a) {
+    std::function<Parser<std::string>(std::string)> f21 = [&,
+                                                           p1](std::string a) {
       std::function<std::string(std::string)> f = [a](std::string b) {
         return a;
       };
@@ -206,19 +207,20 @@ TEST(ccombinator, exceptcombinator) {
 
 class SetCombinator : public CCombinator<int> {
  public:
-  explicit SetCombinator()
-      : CCombinator<int>(gen_parser()) {}
+  explicit SetCombinator() : CCombinator<int>(gen_parser()) {}
 
   Parser<int> gen_parser(void) {
-    std::vector<char> numcs = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
-    std::function<int(std::vector<std::string>)> f1 = [](std::vector<std::string> list) {
-      int ret = 0;
-      for (std::string c : list) {
-        ret *= 10;
-        ret += stoi(c);
-      }
-      return ret;
-    };
+    std::vector<char> numcs = {'0', '1', '2', '3', '4',
+                               '5', '6', '7', '8', '9'};
+    std::function<int(std::vector<std::string>)> f1 =
+        [](std::vector<std::string> list) {
+          int ret = 0;
+          for (std::string c : list) {
+            ret *= 10;
+            ret += stoi(c);
+          }
+          return ret;
+        };
 
     return map(repeat1(pset(numcs)), f1);
   }
@@ -231,5 +233,13 @@ TEST(ccombinator, setcombinator) {
   auto result_success = std::get<Success<int>>(result);
   std::cout << result_success.value_ << std::endl;
 }
+
+class JValue {
+  std::variant<std::string, double, nullptr_t, std::map<std::string, JValue*>,
+               std::vector<JValue*>>
+      value_;
+};
+
+TEST(ccombinator, json) {}
 
 }  // namespace ccombinator

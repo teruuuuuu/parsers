@@ -12,8 +12,7 @@ class Location {
  public:
   int line_;
   int column_;
-  Location(int line, int column)
-      : line_(line), column_(column) {}
+  Location(int line, int column) : line_(line), column_(column) {}
 };
 
 template <typename T>
@@ -61,8 +60,7 @@ class CCombinator {
  public:
   Parser<T> root_parser_;
   std::string input_;
-  CCombinator(Parser<T> root_parser)
-      : root_parser_(root_parser), input_("") {}
+  CCombinator(Parser<T> root_parser) : root_parser_(root_parser), input_("") {}
 
   Result<T> parse(std::string input) {
     input_ = input;
@@ -73,22 +71,17 @@ class CCombinator {
       return Success(p_success.value_);
     } else {
       auto p_failure = std::get<ParseFailure>(parse_result);
-      return Failure(
-          Location{0, p_failure.index_},
-          p_failure.message_);
+      return Failure(Location{0, p_failure.index_}, p_failure.message_);
     }
   }
 
-  bool isEOF(int index) {
-    return input_.size() == index;
-  }
+  bool isEOF(int index) { return input_.size() == index; }
 
   Parser<std::string> pstr(std::string literal) {
     return [this, literal](int index) {
       std::string input = input_.substr(index);
       int len = literal.size();
-      if (input.size() >= len &&
-          input.substr(0, len) == literal) {
+      if (input.size() >= len && input.substr(0, len) == literal) {
         return static_cast<ParseResult<std::string>>(
             ParseSuccess(index + len, literal));
       } else {
@@ -138,7 +131,8 @@ class CCombinator {
       auto parse_result = parser(index);
       if (std::holds_alternative<ParseSuccess<S>>(parse_result)) {
         auto p_success = std::get<ParseSuccess<S>>(parse_result);
-        return static_cast<ParseResult<V>>(ParseSuccess(p_success.index_, f(p_success.value_)));
+        return static_cast<ParseResult<V>>(
+            ParseSuccess(p_success.index_, f(p_success.value_)));
       } else {
         auto p_failure = std::get<ParseFailure>(parse_result);
         return static_cast<ParseResult<V>>(
@@ -211,9 +205,9 @@ class CCombinator {
         if (std::holds_alternative<ParseSuccess<V>>(parse_result2)) {
           auto parse_success2 = std::get<ParseSuccess<U>>(parse_result2);
 
-          return static_cast<ParseResult<std::tuple<V, U>>>(
-              ParseSuccess(parse_success2.index_,
-                           std::tuple<V, U>(parse_success1.value_, parse_success2.value_)));
+          return static_cast<ParseResult<std::tuple<V, U>>>(ParseSuccess(
+              parse_success2.index_,
+              std::tuple<V, U>(parse_success1.value_, parse_success2.value_)));
         } else {
           auto p_failure2 = std::get<ParseFailure>(parse_result2);
           return static_cast<ParseResult<std::tuple<V, U>>>(

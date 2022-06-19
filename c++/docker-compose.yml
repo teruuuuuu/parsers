@@ -7,10 +7,13 @@ services:
       dockerfile: Dockerfile
     container_name: ccombinator
     tty: true
-    cpus: 4
+    # cpus: 4
+    cpuset: "0-3"
     volumes:
       - ./ccombinator/:/root/ccombinator/
       - ./build:/root/build/
       - ./CMakeLists.txt:/root/CMakeLists.txt
       - ./vscode-server:/root/.vscode-server/
       - ./vscode:/root/.vscode/
+      - ./.clang-format:/root/.clang-format
+
