@@ -3,8 +3,12 @@
 namespace ccombinator {
 
 JsonCombinator::JsonCombinator() : CCombinator<Json>(gen_parser()) {
+  std::cout << "&jstr_parser_:" << &jstr_parser_ << std::endl;
+  jvalue_parser_ = gen_jvalue_prser();
+  jarray_parser_ = gen_jarray_prser();
   jstr_parser_ = gen_jstring_prser();
   jnum_parser_ = gen_jnum_prser();
+  std::cout << "&jstr_parser_:" << &jstr_parser_ << std::endl;
 }
 
 Parser<Json> JsonCombinator::gen_parser(void) {
@@ -60,6 +64,70 @@ Parser<JNumber*> JsonCombinator::gen_jnum_prser(void) {
       };
 
   return map(repeat1(pset(numcs)), f1);
+}
+
+Parser<JValue*> JsonCombinator::gen_jvalue_prser(void) {
+  std::function<JValue*(JString*)> jstr_f = [](JString* a) {
+    return new JValue(a);
+  };
+
+  std::function<JValue*(JNumber*)> jnum_f = [](JNumber* a) {
+    return new JValue(a);
+  };
+
+  std::function<JValue*(JArray*)> jarray_f = [](JArray* a) {
+    return new JValue(a);
+  };
+
+  return orp(orp(map(perseFromP(&jstr_parser_), jstr_f),
+             map(perseFromP(&jnum_parser_), jnum_f)),
+             map(perseFromP(&jarray_parser_), jarray_f));
+}
+
+Parser<JArray*> JsonCombinator::gen_jarray_prser(void) {
+  Parser<JValue*> jvalue_parser = perseFromP(&jvalue_parser_);
+
+  std::function<Parser<JValue*>(std::string)> f1 =
+      [&, jvalue_parser](std::string a) {
+        std::function<JValue*(JValue*)> func = [a](JValue* jv) {
+            return jv;
+        };
+        return map(jvalue_parser, func);
+    };
+  Parser<std::vector<JValue*>> jvalue_parser2 = repeat0(flatMap(pstr(","), f1));
+
+  std::function<Parser<JArray*>(JValue*)> f2 =
+      [&, jvalue_parser2](JValue* a) {
+        std::function<JArray*(std::vector<JValue*>)> func =
+            [a](std::vector<JValue*> list) {
+                JArray* jarray = new JArray();
+                jarray->add(a);
+                for(auto b: list) {
+                    jarray->add(b);
+                }
+              return jarray;
+            };
+        return map(jvalue_parser2, func);
+      };
+  Parser<JArray*> jvalue_parser3 = flatMap(jvalue_parser, f2);
+  std::function<JArray*(std::optional<JArray*>)> f3 =
+      [](std::optional<JArray*> jarrayOpt) {
+        return jarrayOpt.value_or(new JArray());
+      };
+  Parser<JArray*> jvalue_parser_f =
+      map(optional(jvalue_parser3), f3);
+
+  std::function<Parser<JArray*>(std::string)> f4 =
+      [&, jvalue_parser_f](std::string a) { return jvalue_parser_f; };
+
+  std::function<Parser<JArray*>(JArray*)> f5 =
+      [&](JArray* a) {
+        std::function<JArray*(std::string)> func =
+            [a](std::string b) { return a; };
+        return map(pstr("]"), func);
+      };
+
+    return flatMap(flatMap(pstr("["), f4), f5);
 }
 
 }  // namespace ccombinator

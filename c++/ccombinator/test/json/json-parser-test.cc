@@ -75,4 +75,40 @@ TEST(jsontest, jnumber) {
   }
 }
 
+TEST(jsontest, jvalue) {
+  std::cout << "start" << std::endl;
+  JsonCombinator jc = JsonCombinator();
+  {
+    Result<JValue*> result = jc.parseJValue("\"json string\"");
+    ASSERT_TRUE(std::holds_alternative<Success<JValue*>>(result));
+    Success<JValue*> success = std::get<Success<JValue*>>(result);
+    ASSERT_EQ("\"json string\"", success.value_->to_string());
+  }
+  {
+    Result<JValue*> result = jc.parseJValue("0123456789");
+    ASSERT_TRUE(std::holds_alternative<Success<JValue*>>(result));
+    Success<JValue*> success = std::get<Success<JValue*>>(result);
+    ASSERT_EQ("123456789", success.value_->to_string());
+  }
+  {
+    Result<JValue*> result = jc.parseJValue("[1,2,\"abc\",[3,4,5]]");
+    ASSERT_TRUE(std::holds_alternative<Success<JValue*>>(result));
+    Success<JValue*> success = std::get<Success<JValue*>>(result);
+    std::cout << "jvalue:" << success.value_->to_string() << std::endl;
+  }
+  std::cout << "end" << std::endl;
+}
+
+TEST(jsontest, jarray) {
+  std::cout << "start" << std::endl;
+  JsonCombinator jc = JsonCombinator();
+  {
+    Result<JArray*> result = jc.parseJArray("[1,2,\"abc\",[3,4,5]]");
+    ASSERT_TRUE(std::holds_alternative<Success<JArray*>>(result));
+    Success<JArray*> success = std::get<Success<JArray*>>(result);
+    std::cout << "jarray:" << success.value_->to_string() << std::endl;
+  }
+  std::cout << "end" << std::endl;
+}
+
 }  // namespace ccombinator
