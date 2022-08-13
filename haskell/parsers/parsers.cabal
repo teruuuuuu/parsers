@@ -1,10 +1,8 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
---
--- hash: 6c485855543e6fa630f5442bf33bfd230ff3e76766473de07d67133ee6b7394a
 
 name:           parsers
 version:        0.1.0.0
@@ -13,7 +11,7 @@ homepage:       https://github.com/githubuser/parsers#readme
 bug-reports:    https://github.com/githubuser/parsers/issues
 author:         Author name here
 maintainer:     example@example.com
-copyright:      2021 Author name here
+copyright:      2022 Author name here
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -27,14 +25,15 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
-      , Common.Parser
+      Parser.Common
+      Parser.Json
   other-modules:
       Paths_parsers
   hs-source-dirs:
       src
   build-depends:
       base >=4.7 && <5
+    , containers
   default-language: Haskell2010
 
 executable parsers-exe
@@ -46,6 +45,7 @@ executable parsers-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , containers
     , parsers
   default-language: Haskell2010
 
@@ -53,13 +53,12 @@ test-suite parsers-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Common.ParsersSpec
       Paths_parsers
   hs-source-dirs:
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , containers
     , parsers
-    , HUnit
   default-language: Haskell2010

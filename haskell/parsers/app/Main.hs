@@ -1,8 +1,15 @@
 module Main where
 
-import Lib
-import Common.Parser
+import Parser.Common
+import Parser.Json
+
+parser = do
+    a <- repeat1 $ pchar 'a'
+    b <- repeat1 $ pchar 'b'
+    pure (a ++ b)
 
 main :: IO ()
-main = do
-    print $ parse (StringParser "abc") "abcdef"
+main = getLine >>= pure . parse pjson >>= print
+    -- getLine Data.Functor.<&> parse parser
+    -- where
+    --     parser = repeat1 $ pchar 'a'
