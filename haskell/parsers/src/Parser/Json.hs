@@ -2,9 +2,20 @@ module Parser.Json  where
 
 import Control.Applicative ( Alternative(empty, (<|>)) ) 
 import qualified Data.Map as Map 
+import Data.List (find)
 import Parser.Common 
 
-data JValue = JVObject [(String, JValue)] | JVArray [JValue] |JVString String | JVNumber Int | JVBool Bool | JVNull deriving (Show)
+data JValue = JVObject [(String, JValue)] | JVArray [JValue] |JVString String | JVNumber Int | JVBool Bool | JVNull deriving (Eq, Show)
+
+jvprop :: String -> JValue -> Maybe JValue
+jvprop key jv = case jv of
+    JVObject l -> snd <$> find (\ a -> fst a == key) l
+    _ -> Nothing
+
+jvindex :: Int -> JValue -> Maybe JValue
+jvindex index jv = case jv of
+    JVArray l | length l > index -> Just $ l!!index
+    _ -> Nothing
 
 parseJson :: String -> ParseResult JValue
 parseJson = parse pjson
@@ -36,7 +47,11 @@ pjarray = do
     _ <- skipSpace
     _ <- pchar '['
     _ <- skipSpace
-    r <- JVArray <$> repeatBy pjvalue (skipSpace `pand` pchar ',' `pand` skipSpace)
+    r <- JVArray <$> Parser (\inp -> 
+        case parse (repeat1By pjvalue (skipSpace `pand` pchar ',' `pand` skipSpace)) inp of
+            PSuccess r n -> PSuccess r n
+            _ -> PSuccess [] inp
+        )
     _ <- skipSpace
     _ <- pchar ']'
     pure r 
@@ -46,7 +61,11 @@ pjobject = do
     _ <- skipSpace
     _ <- pchar '{'
     _ <- skipSpace
-    r <- JVObject <$> repeatBy pjobjectItem (skipSpace `pand` pchar ',' `pand` skipSpace)
+    r <- JVObject <$> Parser (\inp -> 
+        case parse (repeat1By pjobjectItem (skipSpace `pand` pchar ',' `pand` skipSpace)) inp of
+            PSuccess  r n -> PSuccess r n
+            _ ->  PSuccess [] inp
+        )
     _ <- skipSpace
     _ <- pchar '}'
     _ <- skipSpace
@@ -63,4 +82,3 @@ pjobjectItem = do
     v <- pjvalue
     _ <- skipSpace
     pure (k,v)
-

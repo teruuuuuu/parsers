@@ -82,8 +82,8 @@ repeat1 p = Parser (\inp -> case repeat' p inp [] of
         _ -> PFail "" inp
     )
 
-repeatBy :: Parser a -> Parser b -> Parser [a]
-repeatBy p sep = do
+repeat1By :: Parser a -> Parser b -> Parser [a]
+repeat1By p sep = do
     h <- p
     t <- repeat0 $ snd <$> (sep `pand` p)
     pure $ h : t

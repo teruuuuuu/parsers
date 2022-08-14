@@ -1,2 +1,13 @@
+{-# LANGUAGE OverloadedStrings #-}
+module Main where
+import Test.HUnit
+
+import Parser.JsonSpec (jsonSpecTests)
+
 main :: IO ()
-main = putStrLn "Test suite not yet implemented"
+main = do
+  runTestTT $ TestList
+    [ 
+        jsonSpecTests
+    ]
+  return ()

@@ -32,7 +32,8 @@ library
   hs-source-dirs:
       src
   build-depends:
-      base >=4.7 && <5
+      HUnit
+    , base >=4.7 && <5
     , containers
   default-language: Haskell2010
 
@@ -44,7 +45,8 @@ executable parsers-exe
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      HUnit
+    , base >=4.7 && <5
     , containers
     , parsers
   default-language: Haskell2010
@@ -53,12 +55,14 @@ test-suite parsers-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Parser.JsonSpec
       Paths_parsers
   hs-source-dirs:
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      HUnit
+    , base >=4.7 && <5
     , containers
     , parsers
   default-language: Haskell2010
