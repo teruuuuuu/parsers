@@ -57,7 +57,7 @@ impl <'a, A>ParserTrait<'a, A> for Parser<'a, A> {
     }
 }
 
-trait FunctorParser<'a, A>: ParserTrait<'a, A> {
+pub trait FunctorParser<'a, A>: ParserTrait<'a, A> {
     fn map<B, F>(self, f: F) -> Parser<'a, B>
     where
       F: Fn(A) -> B + 'a,
@@ -76,7 +76,7 @@ impl <'a, A>FunctorParser<'a, A> for Parser<'a, A> {
       }
 }
 
-trait MonadParser<'a, A>: FunctorParser<'a, A> {
+pub trait MonadParser<'a, A>: FunctorParser<'a, A> {
     fn flat_map<B, F>(self, f: F) -> Parser<'a, B>
     where
       F: Fn(A) -> Parser<'a, B> + 'a,

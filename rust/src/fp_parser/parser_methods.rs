@@ -19,6 +19,10 @@ pub trait ParserMethods<'a, A>: ParserTrait<'a, A> {
     where
     A: 'a,
     B: 'a;
+
+    fn repeat(self) -> Parser<'a, Vec<A>>
+    where
+    A: 'a;
 }
 
 
@@ -56,5 +60,45 @@ impl <'a, A>ParserMethods<'a, A> for Parser<'a, A> {
             }
             ParseResult::ParseNg(message, loc) => ParseResult::ParseNg(message, loc)
         })
+    }
+
+    fn repeat(self) -> Parser<'a, Vec<A>>
+    where
+    A: 'a {
+        Parser::new(move |input, loc| {
+            let mut res = Vec::<A>::new();
+            let mut res_loc = loc;
+
+            while match self.parse(input, res_loc) {
+                ParseResult::ParseOk(r, loc) => {
+                    res.push(r);
+                    res_loc = loc;
+                    true
+                }
+                _ => false
+            } {}
+
+            ParseResult::ParseOk(res, res_loc)
+        })
+    }
+
+}
+
+
+#[test]
+fn test_repeat() {
+    use crate::fp_parser::common_parser::char_parser;
+
+    let p = char_parser('a').repeat().map(|r| r.iter().collect::<String>());
+    let input = "aaaaaaaaabcd";
+
+
+    match p.parse(input, Loc(0, input.len())) {
+        ParseResult::ParseOk(r, loc) => {
+            assert_eq!("aaaaaaaaa", r);
+            assert_eq!(Loc(9, 12), loc);
+            assert!(true)
+        }
+        _ => assert!(false)
     }
 }
