@@ -1,12 +1,10 @@
 
-use std::borrow::BorrowMut;
 use std::cell::RefCell;
-use std::cell::RefMut;
-use std::char;
 use std::collections::HashMap;
 use std::rc::Rc;
 use crate::fp_parser::common_parser::*;
 use crate::fp_parser::parser::*;
+use crate::json_parser;
 
 use super::parser::FunctorParser;
 use super::parser_methods::ParserMethods;
@@ -34,106 +32,82 @@ pub struct JsonParser<'a> {
     num_parser: Parser<'a, JValue>,
     bool_parser: Parser<'a, JValue>,
     null_parser: Parser<'a, JValue>,
-    // array_parser: Parser<'a, JValue>,
-    // jvalue_parsers: &'a Vec<Rc<Parser<'a, JValue>>>,
+    array_parser: Rc<RefCell<Parser<'a, JValue>>>,
+    object_parser: Rc<RefCell<Parser<'a, JValue>>>
 }
 
 impl <'a>JsonParser<'a> {
     fn new() -> JsonParser<'a> {
-        let dummy_parer = Parser::new(move |input, loc| ParseResult::<JValue>::ParseNg("dummy".to_owned(), loc));
-
-        let array_parser = Rc::new(RefCell::new(dummy_parer.clone()));
-        let object_parser = Rc::new(RefCell::new(dummy_parer.clone()));
-        let str_parser = Rc::new(RefCell::new(json_str_parser()));
-        let num_parser = Rc::new(RefCell::new(json_num_parser()));
-        let bool_parser = Rc::new(RefCell::new(json_bool_parser()));
-        let null_parser = Rc::new(RefCell::new(json_null_parser()));
-
-
-        // let a = Rc::new(Parsers::Cons(Rc::clone(&value), Rc::new(Parsers::Nil)));
-        // let b = Parsers::Cons(Rc::new(RefCell::new(json_str_parser())), Rc::clone(&a));
-        // let c = Parsers::Cons(Rc::new(RefCell::new(json_str_parser())), Rc::clone(&a));
-
-        let parsers1 = Parsers::Cons(Rc::clone(&array_parser), Rc::new(Parsers::Nil));
-        let parsers2 = Parsers::Cons(Rc::clone(&object_parser), Rc::new(parsers1)); 
-        let parsers3 = Parsers::Cons(Rc::clone(&str_parser), Rc::new(parsers2)); 
-        let parsers4 = Parsers::Cons(Rc::clone(&num_parser), Rc::new(parsers3)); 
-        let parsers5 = Parsers::Cons(Rc::clone(&bool_parser), Rc::new(parsers4)); 
-        let parsers6 = Parsers::Cons(Rc::clone(&null_parser), Rc::new(parsers5)); 
+        let dummy_parer = Parser::new(move |input, loc| {
+            println!("dummy parser");
+            ParseResult::<JValue>::ParseNg("dummy".to_owned(), loc)
+        });
     
-
-        // *array_parser = RefCell::new(json_bool_parser());
-
-
-
-
-        let mut jvalue_parsers = RefCell::new(Vec::new());
-
-
         let str_parser = json_str_parser();
         let num_parser = json_num_parser();
         let bool_parser = json_bool_parser();
         let null_parser = json_null_parser();
-
         
-        jvalue_parsers.borrow_mut().push(Rc::from(str_parser.clone()));
-        jvalue_parsers.borrow_mut().push(Rc::from(num_parser.clone()));
-        jvalue_parsers.borrow_mut().push(Rc::from(bool_parser.clone()));
-        // let array_parser = json_array_parser(jvalue_parsers.borrow_mut());
-        // jvalue_parsers.borrow_mut().push(Rc::from(array_parser.clone()));        
+        let array_parser_item = Rc::new(RefCell::new(dummy_parer.clone()));
+        let object_parser_item = Rc::new(RefCell::new(dummy_parer.clone()));
+        let str_parser_item = Rc::new(RefCell::new(str_parser.clone()));
+        let num_parser_item = Rc::new(RefCell::new(num_parser.clone()));
+        let bool_parser_item = Rc::new(RefCell::new(bool_parser.clone()));
+        let null_parser_item = Rc::new(RefCell::new(null_parser.clone()));
+    
+        let parsers1 = Parsers::Cons(Rc::clone(&array_parser_item), Rc::new(Parsers::Nil));
+        let parsers2 = Parsers::Cons(Rc::clone(&object_parser_item), Rc::new(parsers1)); 
+        let parsers3 = Parsers::Cons(Rc::clone(&str_parser_item), Rc::new(parsers2)); 
+        let parsers4 = Parsers::Cons(Rc::clone(&num_parser_item), Rc::new(parsers3)); 
+        let parsers5 = Parsers::Cons(Rc::clone(&bool_parser_item), Rc::new(parsers4)); 
+        let parsers6 = Parsers::Cons(Rc::clone(&null_parser_item), Rc::new(parsers5));
+    
+        let parser = json_value_parer(parsers6.clone());    
+        *array_parser_item.borrow_mut() = json_array_parser(parser.clone());
+        *object_parser_item.borrow_mut() = json_object_parser(parser.clone());
 
-
+           
         JsonParser {
             str_parser,
             num_parser,
             bool_parser,
             null_parser,
-            // array_parser,
-            // jvalue_parsers: jvalue_parsers
+            array_parser: array_parser_item,
+            object_parser: object_parser_item,
         }
     }
 
-    fn parse_jvalue(&self, input: &'a str, loc: Loc) -> ParseResult<JValue> {
-        let mut p_reult = self.str_parser.parse(input, loc);
-        if let ParseResult::ParseNg(_, _) = p_reult {p_reult = self.num_parser.parse(input, loc);}
-        if let ParseResult::ParseNg(_, _) = p_reult {p_reult = self.bool_parser.parse(input, loc);}
-        if let ParseResult::ParseNg(_, _) = p_reult {p_reult = self.null_parser.parse(input, loc);}
-        if let ParseResult::ParseNg(_, _) = p_reult {p_reult = self.parse_jarray(input, loc);}
+    pub fn parse(&self, input: &'a str) -> ParseResult<JValue>{
+        let res1 = self.object_parser.borrow().parse(input, Loc(0, input.len()));
+        match res1 {
+            ParseResult::ParseOk(v, l) => ParseResult::ParseOk(v, l),
+            _ => self.array_parser.borrow().parse(input, Loc(0, input.len()))
+        }
+    }
+}
 
-        p_reult
+#[test]
+fn test_json_parser() {
+    let parser = JsonParser::new();
+
+    match parser.parse("{\"a\":{\"bcd\": [1,\"efg\",true,[2,3,4],{\"j\":false}]}}") {
+        ParseResult::ParseOk(r, loc) => {
+            println!("{:?}", r.clone());
+            assert!(true)
+        },
+        _ => assert!(false)
     }
 
-    fn parse_jarray(&self, input: &'a str, loc: Loc) -> ParseResult<JValue> {
-        let skip_space_parser = char_parser(' ').repeat();
-        let lbracket_parser = (char_parser('[') + skip_space_parser.clone());
-        let rbracket_parser = (skip_space_parser.clone() + char_parser(']'));
-
-        let vec = Vec::new();
-
-        let parse_result = match lbracket_parser.parse(input, loc) {
-            ParseResult::ParseOk(_, loc1) => {
-                
-                loop {
-                    let mut p_reult = self.str_parser.parse(input, loc1);
-                    if let ParseResult::ParseNg(_, _) = p_reult {p_reult = self.num_parser.parse(input, loc1);}
-                    if let ParseResult::ParseNg(_, _) = p_reult {p_reult = self.num_parser.parse(input, loc1);}
-                    if let ParseResult::ParseNg(_, _) = p_reult {p_reult = self.num_parser.parse(input, loc1);}
-                    if let ParseResult::ParseNg(_, _) = p_reult {p_reult = self.num_parser.parse(input, loc1);}
-
-                }
-
-                ParseResult::ParseNg::<JValue>("".to_owned(), loc)
-            },
-            _ => ParseResult::ParseNg("".to_owned(), loc)
-        };
-
-        match parse_result {
-            ParseResult::ParseOk(_, loc) => ParseResult::ParseOk(JValue::JArray(vec), loc),
-            _ => ParseResult::ParseNg("".to_owned(), loc)
-        }
+    match parser.parse("[[[1,true]],\"a\",21,true, null]") {
+        ParseResult::ParseOk(r, loc) => {
+            println!("{:?}", r.clone());
+            assert!(true)
+        },
+        _ => assert!(false)
     }
 
 }
+
 
 fn json_str_parser<'a>() -> Parser<'a, JValue>{
     let left_double_quote_parser = char_parser('"');
@@ -142,8 +116,6 @@ fn json_str_parser<'a>() -> Parser<'a, JValue>{
 
     (left_double_quote_parser + str_parser + right_double_quote_parser).map(|a| JValue::JString(a.0.1))
 }
-
-
 
 #[test]
 fn test_json_str_parser() {
@@ -168,17 +140,24 @@ fn test_json_str_parser() {
 }
 
 fn json_num_parser<'a>() -> Parser<'a, JValue> {
-    char_parser('1').or(char_parser('2')).or(char_parser('3')).or(char_parser('4')).or(char_parser('5')).
+    Parser::new(|input, loc| {
+        let parser = char_parser('1').or(char_parser('2')).or(char_parser('3')).or(char_parser('4')).or(char_parser('5')).
         or(char_parser('6')).or(char_parser('7')).or(char_parser('8')).or(char_parser('9')).or(char_parser('0')).
-        repeat().map(|r| JValue::JNumber(r.iter().collect::<String>().parse::<i64>().unwrap()))
+        repeat();
+        match parser.parse(input, loc) {
+            ParseResult::ParseOk(s, loc) if s.len() == 0 => ParseResult::ParseNg("()".to_owned(), loc),
+            ParseResult::ParseOk(s, loc) => ParseResult::ParseOk(JValue::JNumber(s.iter().collect::<String>().parse::<i64>().unwrap()), loc),
+            ParseResult::ParseNg(m, loc) => ParseResult::ParseNg(m, loc)
+        }
+    })
 }
 
 #[test]
 fn test_json_num_parser() {
     let parser = json_num_parser();
-    let input = "1234567890";
+    let input1 = "1234567890";
     
-    match parser.parse(input, Loc(0, input.len())) {
+    match parser.parse(input1, Loc(0, input1.len())) {
         ParseResult::ParseOk(r, loc) => {
             match r {
                 JValue::JNumber(v) => {
@@ -191,6 +170,13 @@ fn test_json_num_parser() {
             assert!(true)
         },
         _ => assert!(false)
+    }
+
+    let input2 = "g12345g67890";
+    
+    match parser.parse(input2, Loc(0, input2.len())) {
+        ParseResult::ParseOk(_, _) => assert!(false),
+        _ => assert!(true)
     }
 }
 
@@ -261,76 +247,10 @@ fn test_json_null_parser() {
     }
 }
 
-// fn json_value_parer<'a>(jvalue_parers: RefMut<Vec<Rc<Parser<'a, JValue>>>>) -> Parser<'a, JValue> {
-//     Parser::new(move |input, loc| {
-//         println!("parse start");
-//         let mut res = ParseResult::ParseNg("".to_owned(), loc);
-//         for parser in jvalue_parers.borrow().iter() {
-//             println!("parse!!!");
-//             res = parser.parse(input, loc);
-//             match res {
-//                 ParseResult::ParseOk(_, _) => break,
-//                 _ => {}
-//             }
-//         };
-//         println!("parse end");
-//         res
-//     })
-// } 
-
-// fn json_array_parser<'a>(jvalue_parsers: RefMut<Vec<Rc<Parser<'a, JValue>>>>) -> Parser<'a, JValue> {
-
-//     Parser::new(move |input, loc| {
-//         let lbracket_parer = char_parser('[');
-//         let skip_space_parser = char_parser(' ').repeat();
-//         let json_value_parser = (
-//             (skip_space_parser.clone() + json_value_parer(jvalue_parsers.clone())).map(|a| a.1) 
-//             + skip_space_parser.clone()).map(|a| a.0);
-
-//         let json_values_parser = (json_value_parser.clone() + (char_parser(',') + json_value_parser.clone())
-//             .map(|a| a.1).repeat())
-//             .map(|a| {
-//                 let mut ret = vec![a.0];
-//                 for jv in a.1 { ret.push(jv)};
-//                 ret
-//             }).option().map(|a| match a {
-//                 Some(k) => JValue::JArray(k),
-//                 _ => JValue::JArray(Vec::new())
-//             });
-
-//         let rbracket_parer = char_parser(']');
-
-//         ((lbracket_parer.clone() + json_values_parser.clone()).map(|a| a.1) 
-//             + rbracket_parer.clone()).map(|a| a.0).parse(input, loc)
-       
-//     })
-// }
-
-#[test]
-fn test_json_array_parser() {
-
-
-    // let parser = JsonParser::new();
-    // // let input = "[1, \"abc\" ,[]]";
-    // let input = "[[]]";
-    
-    // match parser.array_parser.parse(input, Loc(0, input.len())) {
-    //     ParseResult::ParseOk(r, loc) => {
-    //         match r {
-    //             JValue::JArray(s) => {
-    //                 assert!(true)
-    //             },
-    //             _ => assert!(false)
-    //         }
-    //         assert!(true)
-    //     },
-    //     _ => assert!(false)
-    // }
-
+fn json_value_parer<'a>(jvalue_parers: Parsers<'a>) -> Parser<'a, JValue> {
     fn parse_value<'a>(parsers:&Parsers<'a>, input: &'a str, loc: Loc) -> ParseResult<JValue>{
         match parsers {
             Parsers::Cons(p1, p2) => {
-                println!("parse!");
                 match (*p1.borrow()).parse(input, loc) {
                     ParseResult::ParseOk(r, loc) => ParseResult::ParseOk(r, loc),
                     _ => parse_value(p2.as_ref(), input, loc)
@@ -340,34 +260,141 @@ fn test_json_array_parser() {
         }
     }
 
-    let dummy_parer = Parser::new(move |input, loc| ParseResult::<JValue>::ParseNg("dummy".to_owned(), loc));
+    Parser::new(move |input, loc| {    
+        parse_value(&jvalue_parers, input, loc)
+    })
+} 
 
-    let array_parser = Rc::new(RefCell::new(dummy_parer.clone()));
-    let object_parser = Rc::new(RefCell::new(dummy_parer.clone()));
-    let str_parser = Rc::new(RefCell::new(json_str_parser()));
-    let num_parser = Rc::new(RefCell::new(dummy_parer.clone()));
-    let bool_parser = Rc::new(RefCell::new(json_bool_parser()));
-    let null_parser = Rc::new(RefCell::new(json_null_parser()));
+fn json_array_parser<'a>(jvalue_parser: Parser<'a, JValue>) -> Parser<'a, JValue> {
+    Parser::new(move |input, loc| {
+        let lbracket_parer = char_parser('[');
+        let skip_space_parser = char_parser(' ').repeat();
+
+        let json_value_parser = (
+            (skip_space_parser.clone() + jvalue_parser.clone()).map(|a| a.1) 
+            + skip_space_parser.clone()).map(|a| a.0);
+
+        let json_values_parser = (json_value_parser.clone() + (char_parser(',') + json_value_parser.clone())
+            .map(|a| a.1).repeat())
+            .map(|a| {
+                let mut ret = vec![a.0];
+                for jv in a.1 { ret.push(jv)};
+                ret
+            }).option().map(|a| match a {
+                Some(k) => JValue::JArray(k),
+                _ => JValue::JArray(Vec::new())
+        });
 
 
-    // let a = Rc::new(Parsers::Cons(Rc::clone(&value), Rc::new(Parsers::Nil)));
-    // let b = Parsers::Cons(Rc::new(RefCell::new(json_str_parser())), Rc::clone(&a));
-    // let c = Parsers::Cons(Rc::new(RefCell::new(json_str_parser())), Rc::clone(&a));
+        let rbracket_parer = char_parser(']');
 
-    let parsers1 = Parsers::Cons(Rc::clone(&array_parser), Rc::new(Parsers::Nil));
-    let parsers2 = Parsers::Cons(Rc::clone(&object_parser), Rc::new(parsers1)); 
-    let parsers3 = Parsers::Cons(Rc::clone(&str_parser), Rc::new(parsers2)); 
-    let parsers4 = Parsers::Cons(Rc::clone(&num_parser), Rc::new(parsers3)); 
-    let parsers5 = Parsers::Cons(Rc::clone(&bool_parser), Rc::new(parsers4)); 
-    let parsers6 = Parsers::Cons(Rc::clone(&null_parser), Rc::new(parsers5)); 
+        ((lbracket_parer.clone() + json_values_parser).map(|a| a.1) 
+            + rbracket_parer.clone()).map(|a| a.0).parse(input, loc)
+       
+    })
+}
 
-    let input = "\"2\"";
+#[test]
+fn test_json_array_parser() {
+    let parser = JsonParser::new();
+    let input = "[[[1,true]],\"a\",21,true, null]";
 
-    match parse_value(&parsers6, input, Loc(0, input.len())) {
+    let result = parser.array_parser.borrow().parse(input, Loc(0, input.len()));
+    
+
+    let ans = JValue::JArray(vec![
+        JValue::JArray(vec![
+            JValue::JArray(vec![
+                JValue::JNumber(1), JValue::JBool(true)
+            ])
+        ])
+        , JValue::JString("a".to_owned())
+        , JValue::JNumber(21)
+        , JValue::JBool(true)
+        , JValue::JNull
+    ]);
+    match result {
         ParseResult::ParseOk(r, loc) => {
+            println!("{:?}", ans);
+            println!("{:?}", r.clone());
+            match r {
+                JValue::JArray(s) => {
+                    println!("{:?}", s);
+                    assert!(true)
+                },
+                _ => assert!(false)
+            }
+            
             assert!(true)
         },
         _ => assert!(false)
     }
+}
+
+fn json_object_parser<'a>(jvalue_parser: Parser<'a, JValue>) -> Parser<'a, JValue> {
+    Parser::new(move |input, loc| {
+        let lbracket_parer = char_parser('{');
+        let skip_space_parser = char_parser(' ').repeat();
+
+        fn str_parser_gen<'a>() -> Parser<'a, String>{
+            let left_double_quote_parser = char_parser(' ').repeat() + char_parser('"');
+            let str_parser = stop_word_parser("\"".to_owned());
+            let right_double_quote_parser = char_parser('"') + char_parser(' ').repeat();
+            (left_double_quote_parser + str_parser + right_double_quote_parser).map(|a| a.0.1)
+        }
+        let str_parser = str_parser_gen();
+        let json_value_parser = (
+            (skip_space_parser.clone() + jvalue_parser.clone()).map(|a| a.1) 
+            + skip_space_parser.clone()).map(|a| a.0);
+
+        let json_value_set_parser: Parser<'a, (String, JValue)> = 
+            (str_parser.clone() + char_parser(':') + json_value_parser.clone()).map(|a| (a.0.0, a.1));
+
+        let json_values_parser = (json_value_set_parser.clone() + (char_parser(',') + json_value_set_parser.clone())
+            .map(|a| a.1).repeat())
+            .map(|a| {
+                let mut ret = vec![a.0];
+                for jv in a.1 { ret.push(jv)};
+                ret
+            }).option().map(|a| match a {
+                Some(k) => {
+                    JValue::JObject(k.into_iter().collect::<HashMap<_, _>>())
+                },
+                _ => JValue::JObject(HashMap::new())
+        });
+
+        let rbracket_parer = char_parser('}');
+
+        ((lbracket_parer.clone() + json_values_parser).map(|a| a.1) 
+            + rbracket_parer.clone()).map(|a| a.0).parse(input, loc)
+       
+    })
+}
+
+#[test]
+fn test_json_object_parser() {
+    let parser = JsonParser::new();
+    let input = "{\"a\":{\"bcd\": [1,\"efg\",true,[2,3,4],{\"j\":false}]}}";
+
+    let result = parser.object_parser.borrow().parse(input, Loc(0, input.len()));
     
+
+    let ans = JValue::JArray(vec![
+        JValue::JArray(vec![
+            JValue::JArray(vec![
+                JValue::JNumber(1), JValue::JBool(true)
+            ])
+        ])
+        , JValue::JString("a".to_owned())
+        , JValue::JNumber(21)
+        , JValue::JBool(true)
+        , JValue::JNull
+    ]);
+    match result {
+        ParseResult::ParseOk(r, loc) => {
+            println!("{:?}", r.clone());
+            assert!(true)
+        },
+        _ => assert!(false)
+    }
 }
