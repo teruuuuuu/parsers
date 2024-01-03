@@ -38,7 +38,7 @@ pub struct JsonParser<'a> {
 
 impl <'a>JsonParser<'a> {
     fn new() -> JsonParser<'a> {
-        let dummy_parer = Parser::new(move |input, loc| {
+        let dummy_parer = Parser::new(move |_, loc| {
             println!("dummy parser");
             ParseResult::<JValue>::ParseNg("dummy".to_owned(), loc)
         });
@@ -374,7 +374,7 @@ fn json_object_parser<'a>(jvalue_parser: Parser<'a, JValue>) -> Parser<'a, JValu
 #[test]
 fn test_json_object_parser() {
     let parser = JsonParser::new();
-    let input = "{\"a\":{\"bcd\": [1,\"efg\",true,[2,3,4],{\"j\":false}]}}";
+    let input = "{  \"a\"  :{  \"bcd\" : [  1  ,  \"efg\" , true ,[2,3,4],{\"j\":false}]}}";
 
     let result = parser.object_parser.borrow().parse(input, Loc(0, input.len()));
     

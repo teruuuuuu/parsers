@@ -16,7 +16,7 @@ impl Loc {
 }
 
 impl std::fmt::Display for Loc {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         write!(f, "Loc({}, {})", self.0, self.1)
     }
 }

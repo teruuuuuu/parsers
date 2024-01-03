@@ -1,9 +1,9 @@
 use super::parser::*;
 use super::parse_result::*;
 
-struct Pair2Parser<T,U> {parser1: Box<Parser<T>>, parser2: Box<Parser<U>>}
+struct Pair2Parser<T,U> {parser1: Box<dyn Parser<T>>, parser2: Box<dyn Parser<U>>}
 impl<T,U> Pair2Parser<T,U> {
-  pub fn new(parser1: Box<Parser<T>>, parser2: Box<Parser<U>>) -> Self {
+  pub fn new(parser1: Box<dyn Parser<T>>, parser2: Box<dyn Parser<U>>) -> Self {
     Self {parser1: parser1, parser2: parser2}
   }
 }

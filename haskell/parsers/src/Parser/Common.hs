@@ -89,9 +89,9 @@ repeat1By p sep = do
     pure $ h : t
 
 repeat0By :: Parser a -> Parser b -> Parser [a]
-repeat0By p sep = Parser (\inp -> case parse (repeat0By p sep) inp of
-        PFail r n -> PSuccess [] n
+repeat0By p sep = Parser (\inp -> case parse (repeat1By p sep) inp of
         PSuccess r n -> PSuccess r n
+        _ -> PSuccess [] inp
     )
 
 repeat' :: Parser a -> String -> [a] -> ParseResult [a]
@@ -138,3 +138,9 @@ stopWithEscape c = chararray2str <$> repeat0 ( escape <|> pnot (pchar c))
 
 showParse :: Show a => Parser a -> IO ()
 showParse p = getLine >>= pure . parse p >>= print
+
+-- showParse :: Show a => Parser a -> IO ()
+-- showParse p = do
+--     inp <- getLine
+--     r <- pure $ parse p inp
+--     print r
