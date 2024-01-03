@@ -1,5 +1,6 @@
 package jp.co.teruuu.parser.common;
 
+import jp.co.teruuu.parser.json.JsonParser;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -18,5 +19,10 @@ public class ParserTest {
 
         Parser<List<String>> arrayParser = Parser.dquoteString().array(Parser.charP('['), Parser.charP(']'), Parser.charP(','));
         arrayParser.parse("[ \"abc\" ,\"def\"]");
+
+        JsonParser.jValueParser.parse("[1,2,3,true, false]");
+
+
+        JsonParser.parse("{ \"aaa\" : []}");
     }
 }
