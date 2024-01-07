@@ -54,14 +54,15 @@ public interface Parser<T> {
         return new EscapeParser();
     }
 
-    static Parser<Integer> integer() {
-        return new IntegerParser();
-    }
     static <X>Parser<String> not(Parser<X> parser) {
         return new NotParser<>(parser);
     }
     default Parser<String> not() {
         return new NotParser<>(this);
+    }
+
+    static Parser<Either<Integer,Double>> number() {
+        return new NumberParser();
     }
 
     static <X>Parser<Optional<X>> optional(Parser<X> parser) {
