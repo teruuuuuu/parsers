@@ -5,6 +5,7 @@ import jp.co.teruuu.common.Tuple;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * パーサー用インターフェース
@@ -18,12 +19,20 @@ public interface Parser<T> {
         return parse(input, 0);
     }
 
-    static <X, Y>Parser<Tuple<X, Y>> and(Parser<X> fparser, Parser<Y> sparser) {
-        return new AndParser<>(fparser, sparser);
-    }
-
     default  <X>Parser<Tuple<T, X>> and(Parser<X> parser) {
         return new AndParser<>(this, parser);
+    }
+
+    default  <X>Parser<T> andLeft(Parser<X> parser) {
+        return this.and(parser).map(Tuple::fst);
+    }
+
+    default  <X>Parser<X> andRight(Parser<X> parser) {
+        return this.and(parser).map(Tuple::snd);
+    }
+
+    default  <X>Parser<Void> andVoid(Parser<X> parser) {
+        return this.and(parser).map(value -> null);
     }
 
     default  <X,Y,Z>Parser<List<T>> array(Parser<X> lbrackets, Parser<Y> rbrackets, Parser<Z> separtor) {
@@ -46,15 +55,28 @@ public interface Parser<T> {
         return new EitherParser<>(this, parser);
     }
 
-    static Parser<Void> EOF() {
-        return new EofParser();
+    static Parser<Void> end() {
+        return new EndParser();
     }
 
     static Parser<String> escape() {
         return new EscapeParser();
     }
 
-    static <X>Parser<String> not(Parser<X> parser) {
+    default <X> Parser<X> map(Function<T,X> mapFunc) {
+        return (input, location) -> {
+            switch (this.parse(input, location)) {
+                case ParseResult.Success<T> success -> {
+                    return new ParseResult.Success<>(mapFunc.apply(success.value()), success.next());
+                }
+                case ParseResult.Failure<T> failure -> {
+                    return new ParseResult.Failure<>(failure.message(), failure.next());
+                }
+            }
+        };
+    }
+
+    static <X> Parser<String> not(Parser<X> parser) {
         return new NotParser<>(parser);
     }
     default Parser<String> not() {
@@ -89,6 +111,14 @@ public interface Parser<T> {
         return new SeqParser<>(this);
     }
 
+    static Parser<Void> skip(String literal) {
+        return new SkipParser(literal);
+    }
+
+    static Parser<Void> skip(char c) {
+        return new SkipCharParser(c);
+    }
+
     static Parser<String> stopWord(String literal) {
         return new StopWardParser(literal);
     }
@@ -98,6 +128,6 @@ public interface Parser<T> {
     }
 
     default Parser<T> withSkipSpace() {
-        return new WithSkipEscapeParser<>(this);
+        return new SkipSpaceParser().andRight(this);
     }
 }

@@ -20,10 +20,15 @@ public class JsonParserTest {
 
     @Test
     public void test() {
-        Double.valueOf("-123456");
-        Double.valueOf("-123456.789");
-
         Parser<Json> jsonParser = new JsonParser();
+        assertTrue(jsonParser.parse(" \"string\"") instanceof ParseResult.Success<Json>);
+        assertTrue(jsonParser.parse(" 123.456") instanceof ParseResult.Success<Json>);
+        assertTrue(jsonParser.parse(" true") instanceof ParseResult.Success<Json>);
+        assertTrue(jsonParser.parse(" false") instanceof ParseResult.Success<Json>);
+        assertTrue(jsonParser.parse(" null") instanceof ParseResult.Success<Json>);
+        assertTrue(jsonParser.parse(" []") instanceof ParseResult.Success<Json>);
+        assertTrue(jsonParser.parse(" {}") instanceof ParseResult.Success<Json>);
+
         ParseResult<Json> parseResult = jsonParser.parse(" { \"array\" : [{ \"string\": \"aaaaa\", \"numberInt\": 123, \"numberDouble\": -123.456, \"bool\": true, \"null\": null}] }");
         assertTrue(parseResult instanceof ParseResult.Success<Json>);
         Json value = ((ParseResult.Success<Json>) parseResult).value();
@@ -54,35 +59,35 @@ public class JsonParserTest {
         }
         /**
          0
-         MyJsonParser duration=27271ms
-         JacksonParser duration=27346ms
+         MyJsonParser duration=28057ms
+         JacksonParser duration=28061ms
          1
-         MyJsonParser duration=27428ms
-         JacksonParser duration=27321ms
+         MyJsonParser duration=28098ms
+         JacksonParser duration=28076ms
          2
-         MyJsonParser duration=24429ms
-         JacksonParser duration=24367ms
+         MyJsonParser duration=25688ms
+         JacksonParser duration=25820ms
          3
-         MyJsonParser duration=24346ms
-         JacksonParser duration=24361ms
+         MyJsonParser duration=25702ms
+         JacksonParser duration=25819ms
          4
-         MyJsonParser duration=24328ms
-         JacksonParser duration=24388ms
+         MyJsonParser duration=25750ms
+         JacksonParser duration=25940ms
          5
-         MyJsonParser duration=24429ms
-         JacksonParser duration=24380ms
+         MyJsonParser duration=25705ms
+         JacksonParser duration=25827ms
          6
-         MyJsonParser duration=24393ms
-         JacksonParser duration=24366ms
+         MyJsonParser duration=25700ms
+         JacksonParser duration=25829ms
          7
-         MyJsonParser duration=24303ms
-         JacksonParser duration=24302ms
+         MyJsonParser duration=25689ms
+         JacksonParser duration=25841ms
          8
-         MyJsonParser duration=24284ms
-         JacksonParser duration=24330ms
+         MyJsonParser duration=25773ms
+         JacksonParser duration=25840ms
          9
-         MyJsonParser duration=24290ms
-         JacksonParser duration=24430ms
+         MyJsonParser duration=25692ms
+         JacksonParser duration=25830ms
          **/
     }
 
