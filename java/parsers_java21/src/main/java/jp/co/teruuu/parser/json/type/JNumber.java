@@ -1,4 +1,6 @@
 package jp.co.teruuu.parser.json.type;
 
-public record JNumber(Integer value) implements JValue {
+import jp.co.teruuu.common.Either;
+
+public record JNumber(Either<Integer, Double> number) implements Json {
 }

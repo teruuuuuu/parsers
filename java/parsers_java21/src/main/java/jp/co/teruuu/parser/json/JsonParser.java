@@ -5,9 +5,9 @@ import jp.co.teruuu.parser.common.ParseResult;
 import jp.co.teruuu.parser.common.Parser;
 import jp.co.teruuu.parser.json.type.*;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
+// https://www.json.org/json-en.html
 public class JsonParser implements Parser<Json> {
 
     @Override
@@ -18,159 +18,55 @@ public class JsonParser implements Parser<Json> {
     private Parser<Json> jsonParser = new JsonParserBase<>() {
         @Override
         protected Parser<Json> genParser() {
-            Parser<JValue> parser = jObjectParser.or(jArrayParser);
-            return (input, location) -> {
-                switch (parser.parse(input, location)) {
-                    case ParseResult.Success<JValue> success -> {
-                        switch (success.value()) {
-                            case JObject jObject -> {
-                                return new ParseResult.Success<>(jObject, success.next());
-                            }
-                            case JArray jArray -> {
-                                return new ParseResult.Success<>(jArray, success.next());
-                            }
-                            default -> throw new RuntimeException("");
-                        }
-                    }
-                    case ParseResult.Failure<JValue> failure -> {
-                        return new ParseResult.Failure<>(failure.message(), failure.next());
-                    }
-                }
-            };
-        }
-    };
-
-    private Parser<JValue> jValueParser = new JsonParserBase<>() {
-        @Override
-        protected Parser<JValue> genParser() {
-            return jStringParer.or(jNumberParser).or(jBooleanParser).or(jNullParser).or(jArrayParser).or(jObjectParser);
+            return jStringParer.or(jNumberParser).or(jBooleanParser).or(jNullParser).or(jArrayParser).or(jObjectParser).withSkipSpace();
         }
     };
 
 
-    private Parser<JValue> jStringParer = new JsonParserBase<>() {
+    private Parser<Json> jStringParer = new JsonParserBase<>() {
         @Override
-        protected Parser<JValue> genParser() {
-            Parser<String> parser = Parser.dquoteString();
-            return (input, location) -> {
-                switch (parser.parse(input, location)) {
-                    case ParseResult.Success<String> success -> {
-                        return new ParseResult.Success<>(new JString(success.value()), success.next());
-                    }
-                    case ParseResult.Failure<String> failure -> {
-                        return new ParseResult.Failure<>(failure.message(), failure.next());
-                    }
-                }
-            };
+        protected Parser<Json> genParser() {
+            return Parser.dquoteString().map(JString::new);
         }
     };
 
-    private Parser<JValue> jNumberParser = new JsonParserBase<>() {
+    private Parser<Json> jNumberParser = new JsonParserBase<>() {
         @Override
-        protected Parser<JValue> genParser() {
-            Parser<Integer> parser = Parser.integer();
-            return (input, location) -> {
-                switch (parser.parse(input, location)) {
-                    case ParseResult.Success<Integer> success -> {
-                        return new ParseResult.Success<>(new JNumber(success.value()), success.next());
-                    }
-                    case ParseResult.Failure<Integer> failure -> {
-                        return new ParseResult.Failure<>(failure.message(), failure.next());
-                    }
-                }
-            };
+        protected Parser<Json> genParser() {
+            return Parser.number().map(JNumber::new);
         }
     };
 
-    private Parser<JValue> jBooleanParser = new JsonParserBase<>() {
+    private Parser<Json> jBooleanParser = new JsonParserBase<>() {
         @Override
-        protected Parser<JValue> genParser() {
-            Parser<JValue> trueParser = (input, location) -> {
-                if (input.startsWith("true", location)) {
-                    return new ParseResult.Success<>(new JBoolean(true), location + 4);
-                } else {
-                    return new ParseResult.Failure<>(String.format("not true (location=[%d], input=[%s])", location, input), location + 4);
-                }
-            };
-            Parser<JValue> falseParser = (input, location) -> {
-                if (input.startsWith("false", location)) {
-                    return new ParseResult.Success<>(new JBoolean(false), location + 5);
-                } else {
-                    return new ParseResult.Failure<>(String.format("not false (location=[%d], input=[%s])", location, input), location + 4);
-                }
-            };
+        protected Parser<Json> genParser() {
+            Parser<Json> trueParser = Parser.skip("true").map(v -> new JBoolean(true));
+            Parser<Json> falseParser = Parser.skip("false").map(v -> new JBoolean(true));
             return trueParser.or(falseParser);
         }
     };
 
-    private Parser<JValue> jNullParser = new JsonParserBase<>() {
+    private Parser<Json> jNullParser = new JsonParserBase<>() {
         @Override
-        protected Parser<JValue> genParser() {
-            Parser<String> parser = Parser.string("null");
-
-            return (input, location) -> {
-                switch (parser.parse(input, location)) {
-                    case ParseResult.Success<String> success -> {
-                        return new ParseResult.Success<>(new JNull(), success.next());
-                    }
-                    case ParseResult.Failure<String> failure -> {
-                        return new ParseResult.Failure<>(failure.message(), failure.next());
-                    }
-                }
-            };
+        protected Parser<Json> genParser() {
+            return Parser.skip("null").map(v -> new JNull());
         }
     };
 
-    private Parser<JValue> jArrayParser = new JsonParserBase<>() {
+    private Parser<Json> jArrayParser = new JsonParserBase<>() {
         @Override
-        protected Parser<JValue> genParser() {
-            Parser<List<JValue>> parser = jValueParser.array(Parser.string("["), Parser.string("]"), Parser.string(","));
-
-            return (input, location) -> {
-                switch (parser.parse(input, location)) {
-                    case ParseResult.Success<List<JValue>> success -> {
-                        return new ParseResult.Success<>(new JArray(success.value()), success.next());
-                    }
-                    case ParseResult.Failure<List<JValue>> failure -> {
-                        return new ParseResult.Failure<>(failure.message(), failure.next());
-                    }
-                }
-            };
+        protected Parser<Json> genParser() {
+            return jsonParser.array(Parser.skip('[').withSkipSpace(), Parser.skip(']').withSkipSpace(),
+                    Parser.skip(',').withSkipSpace()).map(JArray::new);
         }
     };
 
-    private Parser<JValue> jObjectParser = new JsonParserBase<>() {
+    private Parser<Json> jObjectParser = new JsonParserBase<>() {
         @Override
-        protected Parser<JValue> genParser() {
-            Parser<String> keyParser = Parser.dquoteString().withSkipSpace();
-            Parser<String> colonParer = Parser.string(":").withSkipSpace();
-            Parser<JValue> jValueWithSkip = jValueParser.withSkipSpace();
-            Parser<Tuple<String, JValue>> kvParser = new Parser<>() {
-                Parser<Tuple<Tuple<String, String>, JValue>> keyValueParser = keyParser.and(colonParer).and(jValueWithSkip);
-
-                @Override
-                public ParseResult<Tuple<String, JValue>> parse(String input, int location) {
-                    switch (keyValueParser.parse(input, location)) {
-                        case ParseResult.Success<Tuple<Tuple<String, String>, JValue>> success -> {
-                            return new ParseResult.Success<>(new Tuple<>(success.value().fst().fst(), success.value().snd()), success.next());
-                        }
-                        case ParseResult.Failure<Tuple<Tuple<String, String>, JValue>> failure -> {
-                            return new ParseResult.Failure<>(failure.message(), failure.next());
-                        }
-                    }
-                }
-            };
-            Parser<List<Tuple<String, JValue>>> objectParser = kvParser.array(Parser.charP('{'), Parser.charP('}'), Parser.charP(','));
-            return (input, location) -> {
-                switch (objectParser.parse(input, location)) {
-                    case ParseResult.Success<List<Tuple<String, JValue>>> success -> {
-                        return new ParseResult.Success<>(new JObject(success.value().stream().collect(Collectors.toMap(Tuple::fst, Tuple::snd))), success.next());
-                    }
-                    case ParseResult.Failure<List<Tuple<String, JValue>>> failure -> {
-                        return new ParseResult.Failure<>(failure.message(), failure.next());
-                    }
-                }
-            };
+        protected Parser<Json> genParser() {
+            Parser<Tuple<String,Json>> entryParer = Parser.dquoteString().withSkipSpace().andLeft(Parser.skip(':').withSkipSpace()).and(jsonParser);
+            return entryParer.array(Parser.skip('{').withSkipSpace(), Parser.skip('}').withSkipSpace(), Parser.skip(",").withSkipSpace()).map(value ->
+                    new JObject(value.stream().collect(Collectors.toMap(Tuple::fst, Tuple::snd))));
         }
     };
 
@@ -185,7 +81,5 @@ public class JsonParser implements Parser<Json> {
             }
             return parser.parse(input, location);
         }
-
     }
-
 }

@@ -1,6 +1,6 @@
 package jp.co.teruuu.parser.common;
 
-public class EofParser implements Parser<Void> {
+public class EndParser implements Parser<Void> {
     @Override
     public ParseResult<Void> parse(String input, int location) {
         if (input.length() == location) {

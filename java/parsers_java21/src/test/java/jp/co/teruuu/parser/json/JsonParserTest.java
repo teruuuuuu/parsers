@@ -2,6 +2,7 @@ package jp.co.teruuu.parser.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jp.co.teruuu.common.Either;
 import jp.co.teruuu.parser.common.ParseResult;
 import jp.co.teruuu.parser.common.Parser;
 import jp.co.teruuu.parser.json.type.*;
@@ -20,7 +21,15 @@ public class JsonParserTest {
     @Test
     public void test() {
         Parser<Json> jsonParser = new JsonParser();
-        ParseResult<Json> parseResult = jsonParser.parse("{ \"array\" : [{ \"string\": \"aaaaa\", \"number\": 123, \"bool\": true, \"null\": null}] }");
+        assertTrue(jsonParser.parse(" \"string\"") instanceof ParseResult.Success<Json>);
+        assertTrue(jsonParser.parse(" 123.456") instanceof ParseResult.Success<Json>);
+        assertTrue(jsonParser.parse(" true") instanceof ParseResult.Success<Json>);
+        assertTrue(jsonParser.parse(" false") instanceof ParseResult.Success<Json>);
+        assertTrue(jsonParser.parse(" null") instanceof ParseResult.Success<Json>);
+        assertTrue(jsonParser.parse(" []") instanceof ParseResult.Success<Json>);
+        assertTrue(jsonParser.parse(" {}") instanceof ParseResult.Success<Json>);
+
+        ParseResult<Json> parseResult = jsonParser.parse(" { \"array\" : [{ \"string\": \"aaaaa\", \"numberInt\": 123, \"numberDouble\": -123.456, \"bool\": true, \"null\": null}] }");
         assertTrue(parseResult instanceof ParseResult.Success<Json>);
         Json value = ((ParseResult.Success<Json>) parseResult).value();
         assertEquals(value, new JObject(Map.of(
@@ -28,7 +37,8 @@ public class JsonParserTest {
                 new JArray(List.of(
                         new JObject(Map.of(
                                 "string", new JString("aaaaa"),
-                                "number", new JNumber(123),
+                                "numberInt", new JNumber(new Either.Left<>(123)),
+                                "numberDouble", new JNumber(new Either.Right<>(-123.456)),
                                 "bool", new JBoolean(true),
                                 "null", new JNull()
                         )))
@@ -38,8 +48,10 @@ public class JsonParserTest {
 
     @Test
     public void testPerformance() throws JsonProcessingException {
+
+        Double.valueOf("123.");
         int loopCount = 1000000;
-        String jsonStr = "{ \"array\" : [{ \"string\": \"aaaaa\", \"number\": 123, \"bool\": true, \"null\": null}] }";
+        String jsonStr = " { \"array\" : [{ \"string\": \"aaaaa\", \"numberInt\": 123, \"numberDouble\": -123.456, \"bool\": true, \"null\": null}] }";
         for (int i = 0; i < 10; i++) {
             System.out.println(i);
             performMyParser(loopCount, jsonStr);
@@ -47,35 +59,35 @@ public class JsonParserTest {
         }
         /**
          0
-         MyJsonParser duration=19680ms
-         JacksonParser duration=19758ms
+         MyJsonParser duration=28057ms
+         JacksonParser duration=28061ms
          1
-         MyJsonParser duration=19529ms
-         JacksonParser duration=19113ms
+         MyJsonParser duration=28098ms
+         JacksonParser duration=28076ms
          2
-         MyJsonParser duration=17494ms
-         JacksonParser duration=17350ms
+         MyJsonParser duration=25688ms
+         JacksonParser duration=25820ms
          3
-         MyJsonParser duration=16758ms
-         JacksonParser duration=17319ms
+         MyJsonParser duration=25702ms
+         JacksonParser duration=25819ms
          4
-         MyJsonParser duration=17455ms
-         JacksonParser duration=17017ms
+         MyJsonParser duration=25750ms
+         JacksonParser duration=25940ms
          5
-         MyJsonParser duration=17031ms
-         JacksonParser duration=17390ms
+         MyJsonParser duration=25705ms
+         JacksonParser duration=25827ms
          6
-         MyJsonParser duration=17595ms
-         JacksonParser duration=16842ms
+         MyJsonParser duration=25700ms
+         JacksonParser duration=25829ms
          7
-         MyJsonParser duration=17270ms
-         JacksonParser duration=17426ms
+         MyJsonParser duration=25689ms
+         JacksonParser duration=25841ms
          8
-         MyJsonParser duration=17139ms
-         JacksonParser duration=17007ms
+         MyJsonParser duration=25773ms
+         JacksonParser duration=25840ms
          9
-         MyJsonParser duration=17424ms
-         JacksonParser duration=17422ms
+         MyJsonParser duration=25692ms
+         JacksonParser duration=25830ms
          **/
     }
 
