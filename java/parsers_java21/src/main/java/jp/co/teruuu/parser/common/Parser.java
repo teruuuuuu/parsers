@@ -24,11 +24,11 @@ public interface Parser<T> {
     }
 
     default  <X>Parser<T> andLeft(Parser<X> parser) {
-        return this.and(parser).map(Tuple::fst);
+        return this.and(parser).map(Tuple::_1);
     }
 
     default  <X>Parser<X> andRight(Parser<X> parser) {
-        return this.and(parser).map(Tuple::snd);
+        return this.and(parser).map(Tuple::_2);
     }
 
     default  <X>Parser<Void> andVoid(Parser<X> parser) {

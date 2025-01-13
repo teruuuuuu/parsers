@@ -1,0 +1,7 @@
+!build/.gitkeep
+build/*
+
+!.vscode-server/.gitkeep
+.vscode-server/*
+
+.stack-work

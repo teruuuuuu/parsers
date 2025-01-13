@@ -9,7 +9,7 @@ public class ArrayParser<T, X, Y, Z> implements Parser<List<T>> {
     public ArrayParser(Parser<T> parser, Parser<X> lbrackets, Parser<Y> rbrackets, Parser<Z> separtor) {
         this.parser = lbrackets.andRight(
                 parser.and(separtor.andRight(parser).seq()).optional()
-                        .map(value -> value.map(v -> Stream.concat(Stream.of(v.fst()), v.snd().stream()).toList()).orElse(List.of()))
+                        .map(value -> value.map(v -> Stream.concat(Stream.of(v._1()), v._2().stream()).toList()).orElse(List.of()))
         ).andLeft(rbrackets);
     }
 

@@ -397,4 +397,23 @@ fn test_json_object_parser() {
         },
         _ => assert!(false)
     }
+
+
+    let input = "[ 123, true, [456,  { \"string\": \"aaaaa\", \"numberInt\": 123, \"numberDouble\": -123.456, \"bool\": true, \"null\": null,\"array\":[ [1]] } ] ]";
+    let parser = JsonParser::new();
+    let mut result;
+
+    use std::time::{Duration, Instant};
+    use std::thread::sleep;
+
+    let start = Instant::now();
+    for i in 0..100000 {
+        result =  parser.object_parser.borrow().parse(input, Loc(0, input.len()));
+    }
+    let end = start.elapsed();
+    println!("time: {}.{:03}", end.as_secs(), end.subsec_nanos() / 1_000_000);
+
+    // println!("{:?}", result);
+
+
 }

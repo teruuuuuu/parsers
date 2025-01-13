@@ -1,0 +1,18 @@
+resolver: lts-23.2
+
+
+packages:
+- parsers
+
+extra-deps: []
+
+flags: {}
+
+extra-package-dbs: []
+
+# GHC options
+ghc-options:
+  "$everything": -Wall
+
+# ビルド結果出力先
+work-dir: ./.stack-work

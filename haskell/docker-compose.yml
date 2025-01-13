@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  
+  dev-haskell: &dev-haskell-settings
+    image: dev-haskell
+    container_name: dev-haskell
+    ports:
+      - "22:22"
+    volumes:
+      - "./.vscode:/root/.vscode"
+      - "./.vscode-server:/root/.vscode-server"
+      - "./parsers:/root/parsers"
+      - "./stack.yaml:/root/stack.yaml"
