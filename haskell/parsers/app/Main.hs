@@ -3,6 +3,7 @@ module Main where
 import Parser.Common
 import Parser.Json
 
+parser :: Parser String
 parser = do
     a <- repeat1 $ pchar 'a'
     b <- repeat1 $ pchar 'b'

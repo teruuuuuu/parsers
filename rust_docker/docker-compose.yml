@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  
+  dev-haskell: &dev-rust-settings
+    image: dev-rust
+    container_name: dev-rust
+    ports:
+      - "22:22"
+    volumes:
+      - "./.vscode:/root/.vscode"
+      - "./.vscode-server:/root/.vscode-server"
+      - "./parser:/root/parser"
+      - "./json:/root/json"
+      - "./Cargo.toml:/root/Cargo.toml"
+      - "./Cargo.lock:/root/Cargo.lock"

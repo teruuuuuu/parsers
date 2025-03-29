@@ -66,7 +66,7 @@ public class JsonParser implements Parser<Json> {
         protected Parser<Json> genParser() {
             Parser<Tuple<String,Json>> entryParer = Parser.dquoteString().withSkipSpace().andLeft(Parser.skip(':').withSkipSpace()).and(jsonParser);
             return entryParer.array(Parser.skip('{').withSkipSpace(), Parser.skip('}').withSkipSpace(), Parser.skip(",").withSkipSpace()).map(value ->
-                    new JObject(value.stream().collect(Collectors.toMap(Tuple::fst, Tuple::snd))));
+                    new JObject(value.stream().collect(Collectors.toMap(Tuple::_1, Tuple::_2))));
         }
     };
 
